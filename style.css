@@ -1,0 +1,307 @@
+div {
+  /*padding-top: 5px;
+  padding-bottom: 10px;*/
+  padding-right: 5px;
+  padding-left: 5px;
+  text-align: center;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.page-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;   /* instead of height */
+}
+
+/* Top + bottom sections */
+.section {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+/* The horizontal divider */
+.divider {
+    width: 100%;
+    height: 3px;
+    background-color: #000000;
+    margin: 10px 0;
+}
+
+/* Everything for the dropdown menu */
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+}
+
+.control-row {
+  display: flex;
+  align-items: right;
+  gap: 0px;
+}
+
+.control-row label {
+  min-width: 10px;
+  text-align: right;
+  color: #000;
+}
+
+.control-row select {
+  padding: 4px 28px 4px 8px;
+  border: 1px solid #aaa;
+  border-radius: 6px;
+  background-color: #fff;
+  cursor: pointer;
+
+  /* Remove default OS styling (important!) */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* Custom dropdown arrow */
+  background-image:
+    linear-gradient(45deg, transparent 50%, #555 50%),
+    linear-gradient(135deg, #555 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 10px) 50%;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+
+.control-row select:focus {
+  outline: none;
+  border-color: #666;
+}
+
+/* range slider and co. */
+datalist {
+  display: flex;
+  vertical-align: middle;
+  justify-content: space-between;
+  width: 85%; /*280px;*/
+  padding: 0 0px;
+  padding-left:7%;
+  padding-bottom: 10%;
+}
+
+datalist option {
+  /* padding: 0; */
+  width: 0px;
+}
+
+input[type="range"] {
+  text-align: center;
+  width: 80%; /*250px;*/
+  margin: 0;
+}
+
+/* For the text and text field before slider */
+.ak-row {
+    display: grid;
+    grid-template-columns: 1fr auto; /* left grows, right fits content */
+    align-items: center;
+    width: 100%;
+    max-width: 260px;   /* same as slider */
+    margin: 0 auto;
+    padding-bottom: 2%;
+}
+
+.ak-row span {
+    text-align: left;
+}
+
+.ak-row input {
+    width: 70px;
+    text-align: right;
+}
+
+/* for the proband data */
+.param-proband {
+    margin-left: auto;
+    display: grid;
+    grid-template-columns: 55% 25%; /* label | input */
+    column-gap: 15%;                  /* BIG space between label & input */
+    row-gap: 6px;
+    align-items: right;
+    padding-top: 40px;
+    padding-bottom: 20px;
+}
+
+.param-proband label {
+    text-align: left;                 /* M1, M2 aligned */
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.param-proband input {
+    text-align: right;                 /* numbers aligned right */
+    width: 100%;
+    height: 20px;
+    padding: 1px 4px;
+    font-size: 14px;
+}
+
+/* for the m, k, d params*/
+.params {
+    margin-left: auto;
+    display: grid;
+    grid-template-columns: 40% 30%; /* label | input */
+    column-gap: 15%;                  /* BIG space between label & input */
+    row-gap: 6px;
+    align-items: right;
+    padding-top: 40px;
+    padding-bottom: 40px;
+}
+
+.params label {
+    text-align: right;                 /* M1, M2 aligned */
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.params input {
+    text-align: right;                 /* numbers aligned right */
+    width: 100%;
+    height: 20px;
+    padding: 1px 4px;
+    font-size: 14px;
+}
+
+
+/* Create three unequal columns that floats next to each other */
+.column {
+  float: left;
+  padding: 10px;
+   /* height: 300px; Should be removed. Only for demonstration */
+}
+
+.left {
+  width: 25%;
+  /*width: 330px;*/
+}
+
+.right {
+  width: 35%;
+}
+
+.middle {
+  width: 40%;
+  padding-left: 20px;
+  padding-right: 20px;
+  text-align: center;
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.vl {
+  position: fixed;          /* ← key change */
+  top: 0;
+  bottom: 0;                /* span full viewport height */
+  left: 25%; /*330px;*/
+  width: 0;
+  border-left: 2px solid black;
+  z-index: 999;             /* keep it above content */
+}
+
+.chartContainer {
+  width: 100%;
+  height: 48vh;
+  padding-bottom: 20px;
+}
+
+.flex-container {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.images {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 120px;
+  height: auto;
+}
+
+.imag-4mkd {
+  display: flex;
+  flex-direction: column;
+  padding-top: 40px;
+  width: 90%;
+  height: 90%;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  transform: rotate(270deg);
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Round sliders */
+.slider.round {
+  border-radius: 34px;
+}
+.slider.round:before {
+  border-radius: 50%;
+}
