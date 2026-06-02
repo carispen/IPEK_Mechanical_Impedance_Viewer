@@ -71,7 +71,7 @@
                 <canvas id="chartVPA"></canvas>
             </div>
             <div class="param-proband">
-                <label for="gender">Sex: Male = 1, Female = 2</label><input id="gender" readonly>
+                <label for="gender">Sex:</label><input id="gender" readonly>
                 <label for="handWeight">Hand Weight [g]:</label><input id="handWeight" readonly>
                 <label for="bodyWeight">Body Weight [kg]:</label><input id="bodyWeight" readonly>
                 <label for="bodyHeight">Body Height [mm]:</label><input id="bodyHeight" readonly>
@@ -174,7 +174,7 @@
         const dirFiles = {
             translatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TY.json",
             translatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TZ.json",
-            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz",
+            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz?v=2",
             rotatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RX.json.gz",
             rotatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RY.json",
             rotatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RZ.json"
@@ -256,7 +256,7 @@
                     }
 
                     // If it's a gz file → decompress
-                    if (url.endsWith(".gz")) {
+                    if (url.includes(".gz")) {
                         const buffer = await response.arrayBuffer();
                         const decompressed = pako.inflate(new Uint8Array(buffer), { to: 'string' });
                         return JSON.parse(decompressed);
@@ -344,10 +344,27 @@
                 function extractSubjectMeta(resultsMatrix) {
                     if (!resultsMatrix || resultsMatrix.length === 0) return null;
 
-                    const gender = num(resultsMatrix[0].gender, 1);
+                    //const gender = num(resultsMatrix[0].gender, 1);
+
+                    // Check whether "All Subjects" is selected
+                    const selectedSubject = document.getElementById("dataMAT").value;
+
+                    let genderText = "unknown";
+
+                    if (selectedSubject === "ALL") {
+                        genderText = "mixed";
+                    } else {
+                        const gender = num(resultsMatrix[0].gender, 1);
+
+                        if (gender === 1) {
+                            genderText = "male";
+                        } else if (gender === 2) {
+                            genderText = "female";
+                        }
+                    }
 
                     return {
-                        gender,
+                        gender: genderText,
                         maxFg: Math.max(...resultsMatrix.map(x => num(x.MaxGripForce)).filter(Number.isFinite)),
                         maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite)),
 
@@ -586,6 +603,7 @@
                         selectProband();  // Recalculates ranges for new direction
 
                         isLoading = false;
+                        updateUI();
                         updateAllCharts();
                     };
 
@@ -1276,7 +1294,11 @@
                         const el = document.getElementById(key);
                         if (!el) return;
 
-                        el.value = Number(value).toFixed(3);
+                        if (typeof value === "number") {
+                            el.value = value.toFixed(3);
+                        } else {
+                            el.value = value;
+                        }
                     });
                 }
 
@@ -1314,6 +1336,8 @@
                     writeVector("d", matlabModel(Fg, Fp, d_beta, mechImpe_Mod));
 
                     const meta = extractSubjectMeta(mechImpe);
+                    console.log("hand weigth:" + meta.handWeight);
+                    console.log(mechImpe);
                     writeMeta(meta);
                 }
     </script>
