@@ -172,12 +172,12 @@
             chart6: null
         };
         const dirFiles = {
-            translatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TY.json?v=2",
-            translatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TZ.json?v=2",
-            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz?v=3",
-            rotatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RX.json.gz?v=2",
-            rotatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RY.json?v=2",
-            rotatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RZ.json?v=2"
+            translatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TY.json",
+            translatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TZ.json",
+            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz",
+            rotatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RX.json.gz",
+            rotatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RY.json",
+            rotatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RZ.json"
         };
         const dimAnr = {
             translatorischZ: 2,
@@ -250,66 +250,68 @@
         }
 
         async function loadJson(url) {
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
+            const response = await fetch(url, {
+                cache: "no-cache"
+            });
 
-                    // If it's a gz file → decompress
-                    if (url.includes(".gz")) {
-                        const buffer = await response.arrayBuffer();
-                        const decompressed = pako.inflate(new Uint8Array(buffer), { to: 'string' }); //resMat for TX has to be gzipped with following command for TX or RX: gzip -k resultsMatrix_TX.json or gzip -k resultsMatrix_RX.json
-                        return JSON.parse(decompressed);
-                    }
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
 
-                    // normal JSON
-                    return response.json();
+            const buffer = await response.arrayBuffer();
+
+            if (url.endsWith(".gz")) {
+                const decompressed = pako.inflate(new Uint8Array(buffer), { to: "string" });
+                return JSON.parse(decompressed);
+            }
+
+            return JSON.parse(new TextDecoder().decode(buffer));
+        }
+
+            const MODEL_DEFS = {
+                translatorischX: {
+                    betaFiles: {
+                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TX.json",
+                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TX.json",
+                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TX.json"
+                    },
+                },
+                translatorischY: {
+                    betaFiles: {
+                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TY.json",
+                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TY.json",
+                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TY.json"
+                    },
+                },
+                translatorischZ: {
+                    betaFiles: {
+                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TZ.json",
+                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TZ.json",
+                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TZ.json"
+                    },
+                },
+                rotatorischX: {
+                    betaFiles: {
+                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RX.json",
+                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RX.json",
+                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RX.json"
+                    },
+                },
+                rotatorischY: {
+                    betaFiles: {
+                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RY.json",
+                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RY.json",
+                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RY.json"
+                    },
+                },
+                rotatorischZ: {
+                    betaFiles: {
+                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RZ.json",
+                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RZ.json",
+                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RZ.json"
+                    },
                 }
-
-                const MODEL_DEFS = {
-                    translatorischX: {
-                        betaFiles: {
-                            m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TX.json?v=2",
-                            d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TX.json?v=2",
-                            k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TX.json?v=2"
-                        },
-                    },
-                    translatorischY: {
-                        betaFiles: {
-                            m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TY.json?v=2",
-                            d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TY.json?v=2",
-                            k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TY.json?v=2"
-                        },
-                    },
-                    translatorischZ: {
-                        betaFiles: {
-                            m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TZ.json?v=2",
-                            d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TZ.json?v=2",
-                            k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TZ.json?v=2"
-                        },
-                    },
-                    rotatorischX: {
-                        betaFiles: {
-                            m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RX.json?v=2",
-                            d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RX.json?v=2",
-                            k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RX.json?v=2"
-                        },
-                    },
-                    rotatorischY: {
-                        betaFiles: {
-                            m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RY.json?v=2",
-                            d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RY.json?v=2",
-                            k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RY.json?v=2"
-                        },
-                    },
-                    rotatorischZ: {
-                        betaFiles: {
-                            m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RZ.json?v=2",
-                            d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RZ.json?v=2",
-                            k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RZ.json?v=2"
-                        },
-                    }
-                };
+            };
 
                 function buildX( Fg, Fp){
 
