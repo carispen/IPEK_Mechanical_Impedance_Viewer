@@ -172,12 +172,12 @@
             chart6: null
         };
         const dirFiles = {
-            translatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TY.json",
-            translatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TZ.json",
-            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz?v=2",
-            rotatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RX.json.gz",
-            rotatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RY.json",
-            rotatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RZ.json"
+            translatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TY.json?v=2",
+            translatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TZ.json?v=2",
+            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz?v=3",
+            rotatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RX.json.gz?v=2",
+            rotatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RY.json?v=2",
+            rotatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RZ.json?v=2"
         };
         const dimAnr = {
             translatorischZ: 2,
@@ -258,7 +258,7 @@
                     // If it's a gz file → decompress
                     if (url.includes(".gz")) {
                         const buffer = await response.arrayBuffer();
-                        const decompressed = pako.inflate(new Uint8Array(buffer), { to: 'string' });
+                        const decompressed = pako.inflate(new Uint8Array(buffer), { to: 'string' }); //resMat for TX has to be gzipped with following command for TX or RX: gzip -k resultsMatrix_TX.json or gzip -k resultsMatrix_RX.json
                         return JSON.parse(decompressed);
                     }
 
