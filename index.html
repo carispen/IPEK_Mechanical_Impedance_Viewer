@@ -19,12 +19,12 @@
                 <select id="dataMAT"></select></p></div>
                 <div class="w3-right-align"><p><label for="anregung">Excitation Direction </label>
                 <select id="anregung">
-                    <option value="translatorischZ">translational z</option>
-                    <option value="translatorischY">translational y</option>
-                    <option value="translatorischX">translational x</option>
-                    <option value="rotatorischZ">rotational z</option>
-                    <option value="rotatorischY">rotational y</option>
-                    <option value="rotatorischX">rotational x</option>
+                    <option value="translatorischZ">translational z&#8341</option>
+                    <option value="translatorischY">translational y&#8341</option>
+                    <option value="translatorischX">translational x&#8341</option>
+                    <option value="rotatorischZ">rotational z&#8341</option>
+                    <option value="rotatorischY">rotational y&#8341</option>
+                    <option value="rotatorischX">rotational x&#8341</option>
                 </select></p></div>
             </div>
             <div>
@@ -44,16 +44,12 @@
             <datalist id="GKmarkers"></datalist>
             <div class="flex-container">
                 <div>
-                    <p>Plot 2</p>
+                    <p>2. line (orange)</p>
                     <label class="switch">
                         <input type="checkbox" id="compareData">
                         <span class="slider round"></span>
                     </label>
-                    <p>Plot 1</p>
-                </div>
-                <div class="images">
-                    <img src="Farbverlauf_grün.png" alt="red line" style="width:90%">
-                    <img src="Farbverlauf_blau.png" alt="blue line" style="width:90%">
+                    <p>1. line (blue)</p>
                 </div>
             </div>
         </div>
@@ -89,18 +85,19 @@
     <div class="divider"></div>
     <div class="row">
         <div class="column left">
-            <p>Settings of four-degree-of-freedom mass spring damper system</p>
             <div class="w3-center">                                          
                 <div class="w3-right-align"><p><label for="dataMAT_Mod">Data Set </label>
-                <select id="dataMAT_Mod"></select></p></div>
+                <select id="dataMAT_Mod">
+                    <option value="allProbands">All Subjects</option>
+                </select></p></div>
                 <div class="w3-right-align"><p><label for="anregung_Mod">Excitation Direction </label>
                 <select id="anregung_Mod">
-                    <option value="translatorischZ">translational z</option>
-                    <option value="translatorischY">translational y</option>
-                    <option value="translatorischX">translational x</option>
-                    <option value="rotatorischZ">rotational z</option>
-                    <option value="rotatorischY">rotational y</option>
-                    <option value="rotatorischX">rotational x</option>
+                    <option value="translatorischZ">translational z&#8341</option>
+                    <option value="translatorischY">translational y&#8341</option>
+                    <option value="translatorischX">translational x&#8341</option>
+                    <option value="rotatorischZ">rotational z&#8341</option>
+                    <option value="rotatorischY">rotational y&#8341</option>
+                    <option value="rotatorischX">rotational x&#8341</option>
                 </select></p></div>
             </div>
             <div class="ak-row">
@@ -117,16 +114,12 @@
             <datalist id="GKmarkers_Mod"></datalist>
             <div class="flex-container">
                 <div>
-                    <p>Plot 2</p>
+                    <p>2. line (orange)</p>
                     <label class="switch">
                         <input type="checkbox" id="compareData_Mod">
                         <span class="slider round"></span>
                     </label>
-                    <p>Plot 1</p>
-                </div>
-                <div class="images">
-                    <img src="Farbverlauf_grün.png" alt="red line" style="width:90%">
-                    <img src="Farbverlauf_blau.png" alt="blue line" style="width:90%">
+                    <p>1. line (blue)</p>
                 </div>
             </div>
         </div>
@@ -141,7 +134,9 @@
         </div>
         <div class="column right">
             <div class="imag-4mkd">
-                <img src="Viermassenschwinger.png" alt="Coordinate system for direction of excitation">
+                <img id="modelImage"
+                    src="Viermassenschwinger.png"
+                    alt="Model visualization">
             </div>
             <div class="params">
                 <label for="m1">M1</label><input id="m1" readonly>
@@ -393,15 +388,16 @@
 
                 function selectProband() {
                     const chosenProb = document.getElementById("dataMAT").value;
-                    const chosenProb_Mod = document.getElementById("dataMAT_Mod").value;
+                    //const chosenProb_Mod = document.getElementById("dataMAT_Mod").value;
 
                     mechImpe = (chosenProb === "ALL")
                         ? newResMat
                         : newResMat.filter(r => r.SubjectNumber === Number(chosenProb));
 
-                    mechImpe_Mod = (chosenProb_Mod === "ALL")
+                    mechImpe_Mod = newResMat_Mod;    
+                    /* mechImpe_Mod = (chosenProb_Mod === "ALL")
                         ? newResMat_Mod
-                        : newResMat_Mod.filter(r => r.SubjectNumber === Number(chosenProb_Mod));
+                        : newResMat_Mod.filter(r => r.SubjectNumber === Number(chosenProb_Mod)); */
 
                     // Compute ranges for selected probands
                     const ranges = computeForceRangesForProband(mechImpe);
@@ -561,12 +557,24 @@
                     };
                 }
 
+                function updateModelImage() {
+                    const excitation = document.getElementById("anregung_Mod").value;
+                    const img = document.getElementById("modelImage");
+
+                    if (excitation.startsWith("translatorisch")) {
+                        img.src = "Viermassenschwinger.png";
+                    } else if (excitation.startsWith("rotatorisch")) {
+                        img.src = "Viermassenschwinger_rotat.png";
+                    }
+                }
+
                 async function initializeApp() {
                     await loadDirection();
                     populateProbandDropdown(newResMat, "dataMAT");
-                    populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
-                    selectProband();  // This now calls setupSliders() internally
+                    //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
+                    selectProband(); 
                     await loadModelMatrices();
+                    updateModelImage();
                     updateUI();
                     updateAllCharts();
                 }
@@ -615,8 +623,9 @@
                         await loadDirection();
                         await loadModelMatrices();
 
-                        populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
-                        selectProband();  // Recalculates ranges for new direction
+                        //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
+                        selectProband();
+                        updateModelImage();
 
                         isLoading = false;
                         updateUI();
@@ -650,7 +659,7 @@
                         AK: DOM.sliderAK.value,
                         GK: DOM.sliderGK.value,
                         minValue: "0",
-                        maxValue: dynamicMaxMI,
+                        //maxValue: dynamicMaxMI,
                         axisTitel: "|Z\u2095| in Ns/m",
                         labelPrefix: "Z\u2095",
                         titel: "Magnitude of Mechanical Impedance"
@@ -664,7 +673,7 @@
                         AK: DOM.sliderAK.value,
                         GK: DOM.sliderGK.value,
                         minValue: "-1.0",
-                        maxValue: "3.2",
+                        //maxValue: "3.2",
                         axisTitel: "\u2220Z\u2095 in rad",
                         labelPrefix: "\u2220Z\u2095",
                         titel: "Phase Angle of Mechanical Impedance"
@@ -678,7 +687,7 @@
                         AK: DOM.sliderAK.value,
                         GK: DOM.sliderGK.value,
                         minValue: "0.0",
-                        maxValue: "0.5",
+                        //maxValue: "0.5",
                         axisTitel: "VPA in W",
                         labelPrefix: "VPA",
                         titel: "Vibration Power Absorption"
@@ -692,7 +701,7 @@
                         AK: DOM.sliderAK_Mod.value,
                         GK: DOM.sliderGK_Mod.value,
                         minValue: "0",
-                        maxValue: dynamicMaxMI_Mod,
+                        //maxValue: dynamicMaxMI_Mod,
                         axisTitel: "|Z\u2095| in Ns/m",
                         labelPrefix: "Z\u2095",
                         titel: "Magnitude of Mechanical Impedance"
@@ -706,7 +715,7 @@
                         AK: DOM.sliderAK_Mod.value,
                         GK: DOM.sliderGK_Mod.value,
                         minValue: "-1.0",
-                        maxValue: "3.2",
+                        //maxValue: "3.2",
                         axisTitel: "\u2220Z\u2095 in rad",
                         labelPrefix: "\u2220Z\u2095",
                         titel: "Phase Angle of Mechanical Impedance"
@@ -935,7 +944,7 @@
                     return { x, y };
                 }
 
-                function createChart({canvasId,chartRef,resultsMatrix,store,AK,GK,minValue,maxValue,axisTitel,labelPrefix,titel}) {
+                function createChart({canvasId,chartRef,resultsMatrix,store,AK,GK,minValue,axisTitel,labelPrefix,titel}) { // insertargument "maxValue" after minValue if needed to set max y-axis
                     if (!resultsMatrix) return chartRef;
 
                     const isMod = canvasId.includes("_Mod");
@@ -954,7 +963,7 @@
                         : document.getElementById("anregung").value;
 
                     const dynamicMaxY = getMaxY(canvasId, excitation);
-                    const finalMaxValue = dynamicMaxY !== null ? dynamicMaxY : maxValue;
+                    //const finalMaxValue = dynamicMaxY !== null ? dynamicMaxY : maxValue;
 
                     store[currentActiveLine] = {
                         x: liveData.x,
@@ -964,7 +973,7 @@
                     };
 
                     if (chartRef) {
-                        chartRef.options.scales.y.max = finalMaxValue;
+                        //chartRef.options.scales.y.max = finalMaxValue;
                         chartRef.data.labels = liveData.x;
 
                         chartRef.data.datasets[0].data = store[0]?.y ?? [];
@@ -1067,7 +1076,7 @@
                                 y: {
                                     title: { display: true, text: axisTitel },
                                     min: minValue,
-                                    max: finalMaxValue,
+                                    //max: finalMaxValue,
                                     ticks: {
                                         callback: value => {
                                             const v = Number(value);
@@ -1095,9 +1104,9 @@
                     const freq = buildFrequencyArray(maxFreq);
                     const w = freq.map(f => 2*Math.PI*f);
 
-                    const m_model = matlabModel(Fg, Fp, m_beta, resultsMatrix);
-                    const d_model = matlabModel(Fg, Fp, d_beta, resultsMatrix);
-                    const k_model = matlabModel(Fg, Fp, k_beta, resultsMatrix);
+                    const m_model = matlabModel(Fg, Fp, m_beta); // add resultsMatrix if needed for Matlab modell
+                    const d_model = matlabModel(Fg, Fp, d_beta); // add resultsMatrix if needed for Matlab modell
+                    const k_model = matlabModel(Fg, Fp, k_beta); // add resultsMatrix if needed for Matlab modell
 
                     if (!m_model.length || !d_model.length || !k_model.length) {
                         console.warn("Model returned empty vectors");
@@ -1308,8 +1317,8 @@
                     return vec.map(v => Math.max(v, eps));
                 }
 
-                function matlabModel(Fg, Fp, modelMat, resultsMatrix) {
-                    if (!modelMat || !resultsMatrix) return [];
+                function matlabModel(Fg, Fp, modelMat) { // add resultsMatrix as argument when Matlab model will be dependent on resMat
+                    if (!modelMat) return []; //if (!modelMat || !resultsMatrix) return [];
 
                     const X = buildX(Fg, Fp);
                     const result = math.multiply(X, math.transpose(modelMat));
@@ -1326,20 +1335,19 @@
                 }
 
                 function updateUI() {
-                    if (!m_beta || !d_beta || !k_beta || !mechImpe_Mod) return;
+                    if (!m_beta || !d_beta || !k_beta) return; // if (!m_beta || !d_beta || !k_beta || !mechImpe_Mod) return; // add if needed for Matlab modell
 
                     const Fg = Number(DOM.sliderGK_Mod?.value);
                     const Fp = Number(DOM.sliderAK_Mod?.value);
 
                     if (Fg == null || Fp == null) return;
 
-                    writeVector("m", matlabModel(Fg, Fp, m_beta, mechImpe_Mod));
-                    writeVector("k", matlabModel(Fg, Fp, k_beta, mechImpe_Mod));
-                    writeVector("d", matlabModel(Fg, Fp, d_beta, mechImpe_Mod));
+                    writeVector("m", matlabModel(Fg, Fp, m_beta)); // add mechImpe_Mod if needed for Matlab modell
+                    writeVector("k", matlabModel(Fg, Fp, k_beta)); // add mechImpe_Mod if needed for Matlab modell
+                    writeVector("d", matlabModel(Fg, Fp, d_beta)); // add mechImpe_Mod if needed for Matlab modell
 
                     const meta = extractSubjectMeta(mechImpe);
-                    console.log("hand weigth:" + meta.handWeight);
-                    console.log(mechImpe);
+                    //console.log(mechImpe);
                     writeMeta(meta);
                 }
     </script>
