@@ -11,9 +11,33 @@
     <script src="https://cdn.jsdelivr.net/npm/pako@2/dist/pako.min.js"></script>
 </head>
 <body>
+    <header class="site-header">
+        <div class="header-left">
+            <h1>Mechanical Impedance Viewer for the Hand-Arm System</h1>
+            <p>
+                Visualization of measurement data and force-dependent hand–arm
+                models for predicting mechanical impedance under varying grip
+                and push forces.
+            </p>
+        </div>
+        <div class="header-right">
+            <img src="logo_ipek.jpg" alt="IPEK Logo">
+            <img src="logo_kit.jpg" alt="KIT Logo">
+        </div>
+    </header>
+    <div class="wizard">
+        <div class="step active">1 Conditions</div>
+        <div class="step">2 Interpolated Data</div>
+        <div class="step">3 Model Data</div>
+        <div class="step">4 Parameters</div>
+    </div>
     <div class="page-container">
-    <div class="row">
-        <div class="column left">
+    <div class="dashboard">
+        <div class="panel left-panel">
+        <div class="box">
+            <div class="card-title">
+                Data Selection    
+            </div>
             <div class="w3-center">                                          
                 <div class="w3-right-align"><p><label for="dataMAT">Data Set </label>
                 <select id="dataMAT"></select></p></div>
@@ -31,13 +55,13 @@
                 <img src="HAS_ISO10068_transparent.png" alt="Coordinate system for direction of excitation" style="width:70%">
             </div>
             <div class="ak-row">
-                <span>Push Force</span>
+                <span>Push Force F<sub>p</sub> [N]</span>
                 <input id="valAK" type="text">
             </div>
             <input id="andk" type="range" step="0.01" list="AKmarkers" />
             <datalist id="AKmarkers"></datalist>
             <div class="ak-row">
-                <span>Grip Force</span>
+                <span>Grip Force F<sub>g</sub> [N]</span>
                 <input id="valGK" type="text">
             </div>
             <input id="greifk" type="range" step="0.01" list="GKmarkers" />
@@ -53,18 +77,58 @@
                 </div>
             </div>
         </div>
-        <div class="vl"></div>
-        <div class="column middle">
-            <div class="chartContainer">
-                <canvas id="chartMI"></canvas>
-            </div>
-            <div class="chartContainer">
-                <canvas id="chartPhase"></canvas>
+        </div>
+        <div class="panel center-panel">
+            <div class="chart-card">
+                <div class="top-chart-card">
+                <div class="tab-header">
+                    <button id="btnMI" class="active"
+                        onclick="switchChart('top','chartMI',this)">
+                        Magnitude of MI
+                    </button>
+                    <button
+                        onclick="switchChart('top','chartPhase',this)">
+                        Phase Angle of MI
+                    </button>
+                    <button
+                        onclick="switchChart('top','chartVPA',this)">
+                        Vibration Power Absorption
+                    </button>
+                </div>
+                <div class="chart-area">
+                    <div class="chart-container">
+                        <canvas id="chartMI"
+                                class="chart-panel top-chart"></canvas>
+
+                        <canvas id="chartPhase"
+                                class="chart-panel top-chart"></canvas>
+
+                        <canvas id="chartVPA"
+                                class="chart-panel top-chart"></canvas>
+                    </div>
+                    <div class="info-box">
+                        <h4>What does this plot show?</h4>
+                        <p>
+                            The curve shows the mechanical impedance of the
+                            hand–arm system as a function of frequency.
+                        </p>
+                        <p>
+                            Higher values indicate a greater dynamic resistance
+                            to the applied excitation.
+                        </p>
+                        <p>
+                            Changes in grip force and push force shift the curves
+                            and may influence resonance regions.
+                        </p>
+                    </div>
+                </div>
+                </div>
             </div>
         </div>
-        <div class="column right">
-            <div class="chartContainer">
-                <canvas id="chartVPA"></canvas>
+        <div class="panel right-panel">
+        <div class="box">
+            <div class="card-title">
+                Anthropometric Data
             </div>
             <div class="param-proband">
                 <label for="gender">Sex:</label><input id="gender" readonly>
@@ -81,10 +145,17 @@
                 <label for="armCircumference">Arm Circumference [mm]:</label><input id="armCircumference" readonly>
             </div>
         </div>
+        </div>
     </div>
-    <div class="divider"></div>
-    <div class="row">
-        <div class="column left">
+    <div class="info-row">
+        <div><i class="icon-class"></i>Platzhalter</div>
+    </div>
+    <div class="dashboard">
+        <div class="left-panel">
+        <div class="box">
+            <div class="card-title">
+                Data Selection    
+            </div>
             <div class="w3-center">                                          
                 <div class="w3-right-align"><p><label for="dataMAT_Mod">Data Set </label>
                 <select id="dataMAT_Mod">
@@ -101,13 +172,13 @@
                 </select></p></div>
             </div>
             <div class="ak-row">
-                <span>Push Force</span>
+                <span>Push Force F<sub>p</sub> [N]</span>
                 <input id="valAK_Mod" type="text">
             </div>
             <input id="andk_Mod" type="range" step="0.01" list="AKmarkers_Mod" />
             <datalist id="AKmarkers_Mod"></datalist>
             <div class="ak-row">
-                <span>Grip Force</span>
+                <span>Grip Force F<sub>g</sub> [N]</span>
                 <input id="valGK_Mod" type="text">
             </div>
             <input id="greifk_Mod" type="range" step="0.01" list="GKmarkers_Mod" />
@@ -123,20 +194,31 @@
                 </div>
             </div>
         </div>
-        <div class="vl"></div>
-        <div class="column middle">
-            <div class="chartContainer">
-                <canvas id="chartMI_Mod"></canvas>
-            </div>
-            <div class="chartContainer">
-                <canvas id="chartPhase_Mod"></canvas>
+        </div>
+        <div class="center-panel">
+            <div class="chart-card">
+                <div class="tab-header">
+                    <button id="btnMI_Mod" class="active"
+                        onclick="switchChart('mod','chartMI_Mod',this)">
+                        Magnitude of MI
+                    </button>
+                    <button
+                        onclick="switchChart('mod','chartPhase_Mod',this)">
+                        Phase Angle of MI
+                    </button>
+                </div>
+                <div>
+                    <canvas id="chartMI_Mod" class="mod-chart"></canvas>
+                </div>
+                <div>
+                    <canvas id="chartPhase_Mod" class="mod-chart"></canvas>
+                </div>
             </div>
         </div>
-        <div class="column right">
-            <div class="imag-4mkd">
-                <img id="modelImage"
-                    src="Viermassenschwinger.png"
-                    alt="Model visualization">
+        <div class="right-panel">
+        <div class="box">
+            <div class="card-title">
+                Modell Parameters    
             </div>
             <div class="params">
                 <label for="m1">M1</label><input id="m1" readonly>
@@ -154,6 +236,17 @@
                 <label for="k3">K3</label><input id="k3" readonly>
                 <label for="k4">K4</label><input id="k4" readonly>
             </div>
+        </div>
+        <div class="box">
+            <div class="card-title">
+                4-mass oscillator modell    
+            </div>
+            <div class="imag-4mkd">
+                    <img id="modelImage"
+                        src="Viermassenschwinger.png"
+                        alt="Model visualization">
+            </div>
+        </div>
         </div>
     </div>
     <script>
@@ -263,1093 +356,1119 @@
             return JSON.parse(new TextDecoder().decode(buffer));
         }
 
-            const MODEL_DEFS = {
-                translatorischX: {
-                    betaFiles: {
-                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TX.json",
-                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TX.json",
-                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TX.json"
-                    },
+        function switchChart(group, canvasId, btn = null) {
+
+            if (btn) {
+                btn.parentElement
+                    .querySelectorAll("button")
+                    .forEach(b => b.classList.remove("active"));
+
+                btn.classList.add("active");
+            }
+
+            const selector =
+                group === "top"
+                    ? ".top-chart"
+                    : ".mod-chart";
+
+            document.querySelectorAll(selector)
+                .forEach(c => c.classList.remove("active"));
+
+            document.getElementById(canvasId)
+                .classList.add("active");
+        }
+
+        const MODEL_DEFS = {
+            translatorischX: {
+                betaFiles: {
+                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TX.json",
+                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TX.json",
+                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TX.json"
                 },
-                translatorischY: {
-                    betaFiles: {
-                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TY.json",
-                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TY.json",
-                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TY.json"
-                    },
+            },
+            translatorischY: {
+                betaFiles: {
+                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TY.json",
+                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TY.json",
+                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TY.json"
                 },
-                translatorischZ: {
-                    betaFiles: {
-                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TZ.json",
-                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TZ.json",
-                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TZ.json"
-                    },
+            },
+            translatorischZ: {
+                betaFiles: {
+                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TZ.json",
+                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TZ.json",
+                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TZ.json"
                 },
-                rotatorischX: {
-                    betaFiles: {
-                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RX.json",
-                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RX.json",
-                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RX.json"
-                    },
+            },
+            rotatorischX: {
+                betaFiles: {
+                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RX.json",
+                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RX.json",
+                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RX.json"
                 },
-                rotatorischY: {
-                    betaFiles: {
-                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RY.json",
-                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RY.json",
-                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RY.json"
-                    },
+            },
+            rotatorischY: {
+                betaFiles: {
+                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RY.json",
+                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RY.json",
+                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RY.json"
                 },
-                rotatorischZ: {
-                    betaFiles: {
-                        m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RZ.json",
-                        d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RZ.json",
-                        k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RZ.json"
-                    },
+            },
+            rotatorischZ: {
+                betaFiles: {
+                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RZ.json",
+                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RZ.json",
+                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RZ.json"
+                },
+            }
+        };
+
+        function buildX( Fg, Fp){
+
+            return[
+                1,
+                Fg,
+                Fp,
+                Fg * Fp
+            ];
+        }
+
+        async function loadModelMatrices() {
+            const dirKey = document.getElementById("anregung_Mod").value;
+            const def = MODEL_DEFS[dirKey];
+
+            const [m, d, k] = await Promise.all([
+                loadJson(def.betaFiles.m),
+                loadJson(def.betaFiles.d),
+                loadJson(def.betaFiles.k)
+            ]);
+
+            m_beta = m;
+            d_beta = d;
+            k_beta = k;
+        }
+
+        function num(v, fallback = 0) {
+            const n = Number(v);
+            return Number.isFinite(n) ? n : fallback;
+        }
+
+        function extractSubjectMeta(resultsMatrix) {
+            if (!resultsMatrix || resultsMatrix.length === 0) return null;
+
+            //const gender = num(resultsMatrix[0].gender, 1);
+
+            // Check whether "All Subjects" is selected
+            const selectedSubject = document.getElementById("dataMAT").value;
+
+            let genderText = "unknown";
+
+            if (selectedSubject === "ALL") {
+                genderText = "mixed";
+            } else {
+                const gender = num(resultsMatrix[0].gender, 1);
+
+                if (gender === 1) {
+                    genderText = "male";
+                } else if (gender === 2) {
+                    genderText = "female";
                 }
+            }
+
+            return {
+                gender: genderText,
+                maxFg: Math.max(...resultsMatrix.map(x => num(x.MaxGripForce)).filter(Number.isFinite)),
+                maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite)),
+
+                handWeight: math.mean(resultsMatrix.map(x => num(x.handWeight))),
+                bodyWeight: math.mean(resultsMatrix.map(x => num(x.bodyWeight))),
+                bodyHeight: math.mean(resultsMatrix.map(x => num(x.bodyHeight))),
+                FrontReach: math.mean(resultsMatrix.map(x => num(x.FrontReach))),
+                ElbowToWristLength: math.mean(resultsMatrix.map(x => num(x.ElbowToWristLength))),
+                thumbLength: math.mean(resultsMatrix.map(x => num(x.thumbLength))),
+                handLength: math.mean(resultsMatrix.map(x => num(x.handLength))),
+                palmLength: math.mean(resultsMatrix.map(x => num(x.palmLength))),
+                palmWidth: math.mean(resultsMatrix.map(x => num(x.palmWidth))),
+                forearmCircumference: math.mean(resultsMatrix.map(x => num(x.forearmCircumference))),
+                armCircumference: math.mean(resultsMatrix.map(x => num(x.armCircumference)))
+            };
+        }
+
+        async function loadDirection() {
+            const key = document.getElementById("anregung").value;
+            newResMat = await loadJson(dirFiles[key]);
+            const key_Mod = document.getElementById("anregung_Mod").value;
+            newResMat_Mod = await loadJson(dirFiles[key_Mod]);
+        }
+
+        function selectProband() {
+            const chosenProb = document.getElementById("dataMAT").value;
+            //const chosenProb_Mod = document.getElementById("dataMAT_Mod").value;
+
+            mechImpe = (chosenProb === "ALL")
+                ? newResMat
+                : newResMat.filter(r => r.SubjectNumber === Number(chosenProb));
+
+            mechImpe_Mod = newResMat_Mod;    
+            /* mechImpe_Mod = (chosenProb_Mod === "ALL")
+                ? newResMat_Mod
+                : newResMat_Mod.filter(r => r.SubjectNumber === Number(chosenProb_Mod)); */
+
+            // Compute ranges for selected probands
+            const ranges = computeForceRangesForProband(mechImpe);
+            rangeFp = ranges.rangeFp;
+            rangeFg = ranges.rangeFg;
+
+            const ranges_Mod = computeForceRangesForProband(mechImpe_Mod);
+            rangeFp_Mod = ranges_Mod.rangeFp;
+            rangeFg_Mod = ranges_Mod.rangeFg;
+
+            if (!rangeFp.length || !rangeFg.length) {
+                console.error("Force ranges are empty for selected proband");
+                return;
+            }
+
+            setupSliders();
+        }
+
+        function getScalar(v) {
+            return Array.isArray(v) ? v[0] : v;
+        }
+
+        function populateProbandDropdown(resultsMatrix, selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = "";
+
+            if (!resultsMatrix || resultsMatrix.length === 0) return;
+
+            const subjects = [...new Set(
+                resultsMatrix
+                    .map(r => r.SubjectNumber)
+                    .filter(v => Number.isFinite(v))
+            )].sort((a, b) => a - b);
+
+            const allOpt = document.createElement("option");
+            allOpt.value = "ALL";
+            allOpt.textContent = "All Subjects";
+            select.appendChild(allOpt);
+
+            subjects.forEach(subject => {
+                const opt = document.createElement("option");
+                opt.value = subject;
+                opt.textContent = `Subject Number ${subject}`;
+                select.appendChild(opt);
+            });
+
+            select.value = subjects[0];
+        }
+
+        function getUnionRange(matrix, field) {
+            return [...new Set(
+                matrix
+                    .filter(r => r?.[field] != null)
+                    .map(r => getScalar(r[field]))
+            )].sort((a, b) => a - b);
+        }
+
+        function computeForceRangesForProband(resultsMatrix, isModChart = false) {
+            if (!resultsMatrix || resultsMatrix.length === 0) {
+                return { rangeFp: [], rangeFg: [] };
+            }
+
+            const rangeFp = getUnionRange(resultsMatrix, "TargetPushForce").filter(Number.isFinite);
+            const rangeFg = getUnionRange(resultsMatrix, "TargetGripForce").filter(Number.isFinite);
+
+            return { rangeFp, rangeFg };
+        }
+
+        function setupSliders() {
+            const numTicks = 6;
+
+            const minValFp = Math.min(...rangeFp);
+            const maxValFp = Math.max(...rangeFp);
+
+            const minValFp_Mod = Math.min(...rangeFp_Mod);
+            const maxValFp_Mod = Math.max(...rangeFp_Mod);
+
+            const stepFp = (maxValFp - minValFp) / (numTicks - 1);
+            const stepFp_Mod = (maxValFp_Mod - minValFp_Mod) / (numTicks - 1);
+
+            const ticksFp = Array.from({ length: numTicks }, (_, i) =>
+                Math.round(minValFp + i * stepFp)
+            );
+
+            const ticksFp_Mod = Array.from({ length: numTicks }, (_, i) =>
+                Math.round(minValFp_Mod + i * stepFp_Mod)
+            );
+
+            setupSlider(DOM.sliderAK, DOM.inputAK, minValFp, maxValFp, ticksFp, "AKmarkers");
+            setupSlider(DOM.sliderAK_Mod, DOM.inputAK_Mod, minValFp_Mod, maxValFp_Mod, ticksFp_Mod, "AKmarkers_Mod");
+
+            // Grip
+            const minValFg = Math.min(...rangeFg);
+            const maxValFg = Math.max(...rangeFg);
+
+            const minValFg_Mod = Math.min(...rangeFg_Mod);
+            const maxValFg_Mod = Math.max(...rangeFg_Mod);
+
+            const stepFg = (maxValFg - minValFg) / (numTicks - 1);
+            const stepFg_Mod = (maxValFg_Mod - minValFg_Mod) / (numTicks - 1);
+
+            const ticksFg = Array.from({ length: numTicks }, (_, i) =>
+                Math.round(minValFg + i * stepFg)
+            );
+
+            const ticksFg_Mod = Array.from({ length: numTicks }, (_, i) =>
+                Math.round(minValFg_Mod + i * stepFg_Mod)
+            );
+
+            setupSlider(DOM.sliderGK, DOM.inputGK, minValFg, maxValFg, ticksFg, "GKmarkers");
+            setupSlider(DOM.sliderGK_Mod, DOM.inputGK_Mod, minValFg_Mod, maxValFg_Mod, ticksFg_Mod, "GKmarkers_Mod");
+        }
+
+        function setupSlider(slider, input, min, max, ticks, datalistId) {
+
+            if (!slider || !input) {
+                console.error("Slider/input missing:", datalistId);
+                return;
+            }
+
+            slider.min = min;
+            slider.max = max;
+            slider.value = min;
+            input.value = min;
+
+            const datalist = document.getElementById(datalistId);
+            if (!datalist) return;
+
+            datalist.innerHTML = "";
+
+            ticks.forEach(v => {
+                const opt = document.createElement("option");
+                opt.value = v;
+                opt.label = v.toString();
+                datalist.appendChild(opt);
+            });
+
+            const clamp = v => Math.min(max, Math.max(min, v));
+
+            slider.oninput = () => {
+                input.value = slider.value;
+                updateUI();
+                debouncedChartUpdate();
             };
 
-                function buildX( Fg, Fp){
-
-                    return[
-                        1,
-                        Fg,
-                        Fp,
-                        Fg * Fp
-                    ];
-                }
-
-                async function loadModelMatrices() {
-                    const dirKey = document.getElementById("anregung_Mod").value;
-                    const def = MODEL_DEFS[dirKey] ?? MODEL_DEFS.default;
-
-                    const [m, d, k] = await Promise.all([
-                        loadJson(def.betaFiles.m),
-                        loadJson(def.betaFiles.d),
-                        loadJson(def.betaFiles.k)
-                    ]);
-
-                    m_beta = m;
-                    d_beta = d;
-                    k_beta = k;
-                }
-
-                function num(v, fallback = 0) {
-                    const n = Number(v);
-                    return Number.isFinite(n) ? n : fallback;
-                }
-
-                function extractSubjectMeta(resultsMatrix) {
-                    if (!resultsMatrix || resultsMatrix.length === 0) return null;
-
-                    //const gender = num(resultsMatrix[0].gender, 1);
-
-                    // Check whether "All Subjects" is selected
-                    const selectedSubject = document.getElementById("dataMAT").value;
-
-                    let genderText = "unknown";
-
-                    if (selectedSubject === "ALL") {
-                        genderText = "mixed";
-                    } else {
-                        const gender = num(resultsMatrix[0].gender, 1);
-
-                        if (gender === 1) {
-                            genderText = "male";
-                        } else if (gender === 2) {
-                            genderText = "female";
-                        }
-                    }
-
-                    return {
-                        gender: genderText,
-                        maxFg: Math.max(...resultsMatrix.map(x => num(x.MaxGripForce)).filter(Number.isFinite)),
-                        maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite)),
-
-                        handWeight: math.mean(resultsMatrix.map(x => num(x.handWeight))),
-                        bodyWeight: math.mean(resultsMatrix.map(x => num(x.bodyWeight))),
-                        bodyHeight: math.mean(resultsMatrix.map(x => num(x.bodyHeight))),
-                        FrontReach: math.mean(resultsMatrix.map(x => num(x.FrontReach))),
-                        ElbowToWristLength: math.mean(resultsMatrix.map(x => num(x.ElbowToWristLength))),
-                        thumbLength: math.mean(resultsMatrix.map(x => num(x.thumbLength))),
-                        handLength: math.mean(resultsMatrix.map(x => num(x.handLength))),
-                        palmLength: math.mean(resultsMatrix.map(x => num(x.palmLength))),
-                        palmWidth: math.mean(resultsMatrix.map(x => num(x.palmWidth))),
-                        forearmCircumference: math.mean(resultsMatrix.map(x => num(x.forearmCircumference))),
-                        armCircumference: math.mean(resultsMatrix.map(x => num(x.armCircumference)))
-                    };
-                }
-
-                async function loadDirection() {
-                    const key = document.getElementById("anregung").value;
-                    newResMat = await loadJson(dirFiles[key]);
-                    const key_Mod = document.getElementById("anregung_Mod").value;
-                    newResMat_Mod = await loadJson(dirFiles[key_Mod]);
-                }
-
-                function selectProband() {
-                    const chosenProb = document.getElementById("dataMAT").value;
-                    //const chosenProb_Mod = document.getElementById("dataMAT_Mod").value;
-
-                    mechImpe = (chosenProb === "ALL")
-                        ? newResMat
-                        : newResMat.filter(r => r.SubjectNumber === Number(chosenProb));
-
-                    mechImpe_Mod = newResMat_Mod;    
-                    /* mechImpe_Mod = (chosenProb_Mod === "ALL")
-                        ? newResMat_Mod
-                        : newResMat_Mod.filter(r => r.SubjectNumber === Number(chosenProb_Mod)); */
-
-                    // Compute ranges for selected probands
-                    const ranges = computeForceRangesForProband(mechImpe);
-                    rangeFp = ranges.rangeFp;
-                    rangeFg = ranges.rangeFg;
-
-                    const ranges_Mod = computeForceRangesForProband(mechImpe_Mod);
-                    rangeFp_Mod = ranges_Mod.rangeFp;
-                    rangeFg_Mod = ranges_Mod.rangeFg;
-
-                    if (!rangeFp.length || !rangeFg.length) {
-                        console.error("Force ranges are empty for selected proband");
-                        return;
-                    }
-
-                    setupSliders();
-                }
-
-                function getScalar(v) {
-                    return Array.isArray(v) ? v[0] : v;
-                }
-
-                function populateProbandDropdown(resultsMatrix, selectId) {
-                    const select = document.getElementById(selectId);
-                    select.innerHTML = "";
-
-                    if (!resultsMatrix || resultsMatrix.length === 0) return;
-
-                    const subjects = [...new Set(
-                        resultsMatrix
-                            .map(r => r.SubjectNumber)
-                            .filter(v => Number.isFinite(v))
-                    )].sort((a, b) => a - b);
-
-                    const allOpt = document.createElement("option");
-                    allOpt.value = "ALL";
-                    allOpt.textContent = "All Subjects";
-                    select.appendChild(allOpt);
-
-                    subjects.forEach(subject => {
-                        const opt = document.createElement("option");
-                        opt.value = subject;
-                        opt.textContent = `Subject Number ${subject}`;
-                        select.appendChild(opt);
-                    });
-
-                    select.value = subjects[0];
-                }
-
-                function getUnionRange(matrix, field) {
-                    return [...new Set(
-                        matrix
-                            .filter(r => r?.[field] != null)
-                            .map(r => getScalar(r[field]))
-                    )].sort((a, b) => a - b);
-                }
-
-                function computeForceRangesForProband(resultsMatrix, isModChart = false) {
-                    if (!resultsMatrix || resultsMatrix.length === 0) {
-                        return { rangeFp: [], rangeFg: [] };
-                    }
-
-                    const rangeFp = getUnionRange(resultsMatrix, "TargetPushForce").filter(Number.isFinite);
-                    const rangeFg = getUnionRange(resultsMatrix, "TargetGripForce").filter(Number.isFinite);
-
-                    return { rangeFp, rangeFg };
-                }
-
-                function setupSliders() {
-                    const numTicks = 6;
-
-                    const minValFp = Math.min(...rangeFp);
-                    const maxValFp = Math.max(...rangeFp);
-
-                    const minValFp_Mod = Math.min(...rangeFp_Mod);
-                    const maxValFp_Mod = Math.max(...rangeFp_Mod);
-
-                    const stepFp = (maxValFp - minValFp) / (numTicks - 1);
-                    const stepFp_Mod = (maxValFp_Mod - minValFp_Mod) / (numTicks - 1);
-
-                    const ticksFp = Array.from({ length: numTicks }, (_, i) =>
-                        Math.round(minValFp + i * stepFp)
-                    );
-
-                    const ticksFp_Mod = Array.from({ length: numTicks }, (_, i) =>
-                        Math.round(minValFp_Mod + i * stepFp_Mod)
-                    );
-
-                    setupSlider(DOM.sliderAK, DOM.inputAK, minValFp, maxValFp, ticksFp, "AKmarkers");
-                    setupSlider(DOM.sliderAK_Mod, DOM.inputAK_Mod, minValFp_Mod, maxValFp_Mod, ticksFp_Mod, "AKmarkers_Mod");
-
-                    // Grip
-                    const minValFg = Math.min(...rangeFg);
-                    const maxValFg = Math.max(...rangeFg);
-
-                    const minValFg_Mod = Math.min(...rangeFg_Mod);
-                    const maxValFg_Mod = Math.max(...rangeFg_Mod);
-
-                    const stepFg = (maxValFg - minValFg) / (numTicks - 1);
-                    const stepFg_Mod = (maxValFg_Mod - minValFg_Mod) / (numTicks - 1);
-
-                    const ticksFg = Array.from({ length: numTicks }, (_, i) =>
-                        Math.round(minValFg + i * stepFg)
-                    );
-
-                    const ticksFg_Mod = Array.from({ length: numTicks }, (_, i) =>
-                        Math.round(minValFg_Mod + i * stepFg_Mod)
-                    );
-
-                    setupSlider(DOM.sliderGK, DOM.inputGK, minValFg, maxValFg, ticksFg, "GKmarkers");
-                    setupSlider(DOM.sliderGK_Mod, DOM.inputGK_Mod, minValFg_Mod, maxValFg_Mod, ticksFg_Mod, "GKmarkers_Mod");
-                }
-
-                function setupSlider(slider, input, min, max, ticks, datalistId) {
-
-                    if (!slider || !input) {
-                        console.error("Slider/input missing:", datalistId);
-                        return;
-                    }
-
-                    slider.min = min;
-                    slider.max = max;
-                    slider.value = min;
-                    input.value = min;
-
-                    const datalist = document.getElementById(datalistId);
-                    if (!datalist) return;
-
-                    datalist.innerHTML = "";
-
-                    ticks.forEach(v => {
-                        const opt = document.createElement("option");
-                        opt.value = v;
-                        opt.label = v.toString();
-                        datalist.appendChild(opt);
-                    });
-
-                    const clamp = v => Math.min(max, Math.max(min, v));
-
-                    slider.oninput = () => {
-                        input.value = slider.value;
-                        updateUI();
-                        debouncedChartUpdate();
-                    };
-
-                    input.onchange = () => {
-                        let v = Number(input.value);
-                        if (Number.isNaN(v)) return;
-
-                        v = Math.min(max, Math.max(min, v));
-
-                        slider.value = v;
-                        input.value = v;
-
-                        updateUI();
-                        debouncedChartUpdate();
-                    };
-                }
-
-                function updateModelImage() {
-                    const excitation = document.getElementById("anregung_Mod").value;
-                    const img = document.getElementById("modelImage");
-
-                    if (excitation.startsWith("translatorisch")) {
-                        img.src = "Viermassenschwinger.png";
-                    } else if (excitation.startsWith("rotatorisch")) {
-                        img.src = "Viermassenschwinger_rotat.png";
-                    }
-                }
-
-                async function initializeApp() {
-                    await loadDirection();
-                    populateProbandDropdown(newResMat, "dataMAT");
-                    //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
-                    selectProband(); 
-                    await loadModelMatrices();
-                    updateModelImage();
-                    updateUI();
-                    updateAllCharts();
-                }
-
-                function initEventListeners() {
-
-                    DOM.compare.onchange = e => {
-                        activeLine = e.target.checked ? 1 : 0;
-                        showSecondLegend = e.target.checked;
-                        updateAllCharts();
-                    };
-
-                    DOM.compareMod.onchange = e => {
-                        activeLine_Mod = e.target.checked ? 1 : 0;
-                        showSecondLegend_Mod = e.target.checked;
-                        updateAllCharts();
-                    };
-
-                    DOM.selectData.onchange = async () => {
-                        selectProband();
-                        updateUI();
-                        updateAllCharts();
-                    };
-
-                    DOM.selectDataMod.onchange = async () => {
-                        selectProband();
-                        updateUI();
-                        updateAllCharts();
-                    };
-
-                    DOM.selectDir.onchange = async () => {
-                        isLoading = true;
-
-                        await loadDirection();
-                        populateProbandDropdown(newResMat, "dataMAT");
-                        selectProband();  // Recalculates ranges for new direction
-
-                        isLoading = false;
-                        updateUI();
-                        updateAllCharts();
-                    };
-
-                    DOM.selectDirMod.onchange = async () => {
-                        isLoading = true;
-
-                        await loadDirection();
-                        await loadModelMatrices();
-
-                        //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
-                        selectProband();
-                        updateModelImage();
-
-                        isLoading = false;
-                        updateUI();
-                        updateAllCharts();
-                    };
-                }
-
-                // Debounced chart update
-                const debouncedChartUpdate = debounce(updateAllCharts, 150);
-
-                document.addEventListener("DOMContentLoaded", async () => {
-                    initDOM();
-                    await initializeApp();
-                    initEventListeners();
-                });
+            input.onchange = () => {
+                let v = Number(input.value);
+                if (Number.isNaN(v)) return;
+
+                v = Math.min(max, Math.max(min, v));
+
+                slider.value = v;
+                input.value = v;
+
+                updateUI();
+                debouncedChartUpdate();
+            };
+        }
+
+        function updateModelImage() {
+            const excitation = document.getElementById("anregung_Mod").value;
+            const img = document.getElementById("modelImage");
+
+            if (excitation.startsWith("translatorisch")) {
+                img.src = "Viermassenschwinger.png";
+            } else if (excitation.startsWith("rotatorisch")) {
+                img.src = "Viermassenschwinger_rotat.png";
+            }
+        }
+
+        async function initializeApp() {
+            await loadDirection();
+            populateProbandDropdown(newResMat, "dataMAT");
+            //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
+            selectProband(); 
+            await loadModelMatrices();
+            updateModelImage();
+            updateUI();
+            updateAllCharts();
+        }
+
+        function initEventListeners() {
+
+            DOM.compare.onchange = e => {
+                activeLine = e.target.checked ? 1 : 0;
+                showSecondLegend = e.target.checked;
+                updateAllCharts();
+            };
+
+            DOM.compareMod.onchange = e => {
+                activeLine_Mod = e.target.checked ? 1 : 0;
+                showSecondLegend_Mod = e.target.checked;
+                updateAllCharts();
+            };
+
+            DOM.selectData.onchange = async () => {
+                selectProband();
+                updateUI();
+                updateAllCharts();
+            };
+
+            DOM.selectDataMod.onchange = async () => {
+                selectProband();
+                updateUI();
+                updateAllCharts();
+            };
+
+            DOM.selectDir.onchange = async () => {
+                isLoading = true;
+
+                await loadDirection();
+                populateProbandDropdown(newResMat, "dataMAT");
+                selectProband();  // Recalculates ranges for new direction
+
+                isLoading = false;
+                updateUI();
+                updateAllCharts();
+            };
+
+            DOM.selectDirMod.onchange = async () => {
+                isLoading = true;
+
+                await loadDirection();
+                await loadModelMatrices();
+
+                //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
+                selectProband();
+                updateModelImage();
+
+                isLoading = false;
+                updateUI();
+                updateAllCharts();
+            };
+        }
+
+        // Debounced chart update
+        const debouncedChartUpdate = debounce(updateAllCharts, 150);
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            initDOM();
+            await initializeApp();
+            initEventListeners();
+            document.getElementById("chartMI").classList.add("active");
+            document.getElementById("btnMI").classList.add("active");
+            document.getElementById("chartMI_Mod").classList.add("active");
+            document.getElementById("btnMI_Mod").classList.add("active");
+        });
                 
-                function updateAllCharts() {
-                    if (isLoading) return;
+        function updateAllCharts() {
+            if (isLoading) return;
 
-                    const excitation = document.getElementById("anregung").value;
-                    const dynamicMaxMI = excitation.startsWith("rotatorisch") ? "1" : "800";
+            const excitation = document.getElementById("anregung").value;
+            const dynamicMaxMI = excitation.startsWith("rotatorisch") ? "1" : "800";
 
-                    const excitation_Mod = document.getElementById("anregung_Mod").value;
-                    const dynamicMaxMI_Mod = excitation_Mod.startsWith("rotatorisch") ? "1" : "800";
+            const excitation_Mod = document.getElementById("anregung_Mod").value;
+            const dynamicMaxMI_Mod = excitation_Mod.startsWith("rotatorisch") ? "1" : "800";
 
-                    charts.chart1 = createChart({
-                        canvasId: "chartMI",
-                        chartRef: charts.chart1,
-                        resultsMatrix: mechImpe,
-                        store: storedData.MI,
-                        AK: DOM.sliderAK.value,
-                        GK: DOM.sliderGK.value,
-                        minValue: "0",
-                        //maxValue: dynamicMaxMI,
-                        axisTitel: "|Z\u2095| in Ns/m",
-                        labelPrefix: "Z\u2095",
-                        titel: "Magnitude of Mechanical Impedance"
-                    });
+            charts.chart1 = createChart({
+                canvasId: "chartMI",
+                chartRef: charts.chart1,
+                resultsMatrix: mechImpe,
+                store: storedData.MI,
+                AK: DOM.sliderAK.value,
+                GK: DOM.sliderGK.value,
+                minValue: "0",
+                //maxValue: dynamicMaxMI,
+                axisTitel: "|Z\u2095| in Ns/m",
+                labelPrefix: "Z\u2095"
+                //titel: "Magnitude of Mechanical Impedance"
+            });
 
-                    charts.chart2 = createChart({
-                        canvasId: "chartPhase",
-                        chartRef: charts.chart2,
-                        resultsMatrix: mechImpe,
-                        store: storedData.Phase,
-                        AK: DOM.sliderAK.value,
-                        GK: DOM.sliderGK.value,
-                        minValue: "-1.0",
-                        //maxValue: "3.2",
-                        axisTitel: "\u2220Z\u2095 in rad",
-                        labelPrefix: "\u2220Z\u2095",
-                        titel: "Phase Angle of Mechanical Impedance"
-                    });
+            charts.chart2 = createChart({
+                canvasId: "chartPhase",
+                chartRef: charts.chart2,
+                resultsMatrix: mechImpe,
+                store: storedData.Phase,
+                AK: DOM.sliderAK.value,
+                GK: DOM.sliderGK.value,
+                minValue: "-1.0",
+                //maxValue: "3.2",
+                axisTitel: "\u2220Z\u2095 in rad",
+                labelPrefix: "\u2220Z\u2095"
+                //titel: "Phase Angle of Mechanical Impedance"
+            });
 
-                    charts.chart3 = createChart({
-                        canvasId: "chartVPA",
-                        chartRef: charts.chart3,
-                        resultsMatrix: mechImpe,
-                        store: storedData.VPA,
-                        AK: DOM.sliderAK.value,
-                        GK: DOM.sliderGK.value,
-                        minValue: "0.0",
-                        //maxValue: "0.5",
-                        axisTitel: "VPA in W",
-                        labelPrefix: "VPA",
-                        titel: "Vibration Power Absorption"
-                    });
+            charts.chart3 = createChart({
+                canvasId: "chartVPA",
+                chartRef: charts.chart3,
+                resultsMatrix: mechImpe,
+                store: storedData.VPA,
+                AK: DOM.sliderAK.value,
+                GK: DOM.sliderGK.value,
+                minValue: "0.0",
+                //maxValue: "0.5",
+                axisTitel: "VPA in W",
+                labelPrefix: "VPA"
+                //titel: "Vibration Power Absorption"
+            });
 
-                    charts.chart4 = createChart({
-                        canvasId: "chartMI_Mod",
-                        chartRef: charts.chart4,
-                        resultsMatrix: mechImpe_Mod,
-                        store: storedData.MI_Mod,
-                        AK: DOM.sliderAK_Mod.value,
-                        GK: DOM.sliderGK_Mod.value,
-                        minValue: "0",
-                        //maxValue: dynamicMaxMI_Mod,
-                        axisTitel: "|Z\u2095| in Ns/m",
-                        labelPrefix: "Z\u2095",
-                        titel: "Magnitude of Mechanical Impedance"
-                    });
+            charts.chart4 = createChart({
+                canvasId: "chartMI_Mod",
+                chartRef: charts.chart4,
+                resultsMatrix: mechImpe_Mod,
+                store: storedData.MI_Mod,
+                AK: DOM.sliderAK_Mod.value,
+                GK: DOM.sliderGK_Mod.value,
+                minValue: "0",
+                //maxValue: dynamicMaxMI_Mod,
+                axisTitel: "|Z\u2095| in Ns/m",
+                labelPrefix: "Z\u2095"
+                //titel: "Magnitude of Mechanical Impedance"
+            });
 
-                    charts.chart5 = createChart({
-                        canvasId: "chartPhase_Mod",
-                        chartRef: charts.chart5,
-                        resultsMatrix: mechImpe_Mod,
-                        store: storedData.Phase_Mod,
-                        AK: DOM.sliderAK_Mod.value,
-                        GK: DOM.sliderGK_Mod.value,
-                        minValue: "-1.0",
-                        //maxValue: "3.2",
-                        axisTitel: "\u2220Z\u2095 in rad",
-                        labelPrefix: "\u2220Z\u2095",
-                        titel: "Phase Angle of Mechanical Impedance"
-                    });
+            charts.chart5 = createChart({
+                canvasId: "chartPhase_Mod",
+                chartRef: charts.chart5,
+                resultsMatrix: mechImpe_Mod,
+                store: storedData.Phase_Mod,
+                AK: DOM.sliderAK_Mod.value,
+                GK: DOM.sliderGK_Mod.value,
+                minValue: "-1.0",
+                //maxValue: "3.2",
+                axisTitel: "\u2220Z\u2095 in rad",
+                labelPrefix: "\u2220Z\u2095"
+                //titel: "Phase Angle of Mechanical Impedance"
+            });
+        }
+
+        function getDataField(canvasId) {
+            switch (canvasId) {
+                case "chartMI":        return "MI";
+                case "chartPhase":     return "Phase";
+                case "chartVPA":       return "VPA";
+                case "chartMI_Mod":    return "MI_Mod";
+                case "chartPhase_Mod": return "Phase_Mod";
+                default:
+                    throw new Error("Unknown canvasId: " + canvasId);
+            }
+        }
+
+        function shouldTakeAbs(canvasId) {
+            return canvasId === "chartMI" || canvasId === "chartVPA";
+        }
+
+        function getMaxFreq(excitation) {
+            if (excitation.startsWith("rotatorisch")) {
+                return 100;
+            }
+            if (excitation === "translatorischY") {
+                return 100;
+            }
+            return 500;
+        }
+
+        function getMaxY(canvasId, excitation) {
+            // Only affect MI charts
+            if (canvasId === "chartMI" || canvasId === "chartMI_Mod") {
+                if (excitation.startsWith("rotatorisch")) {
+                    return "1";
+                } else {
+                    return "800";
                 }
+            }
+            return null; // Return null for non-MI charts
+        }
 
-                function getDataField(canvasId) {
-                    switch (canvasId) {
-                        case "chartMI":        return "MI";
-                        case "chartPhase":     return "Phase";
-                        case "chartVPA":       return "VPA";
-                        case "chartMI_Mod":    return "MI_Mod";
-                        case "chartPhase_Mod": return "Phase_Mod";
-                        default:
-                            throw new Error("Unknown canvasId: " + canvasId);
-                    }
+        function buildFrequencyArray(maxFreq) {
+            const cacheKey = `freq_${maxFreq}`;
+            if (frequencyCache[cacheKey]) {
+                return frequencyCache[cacheKey];
+            }
+            
+            const freq = [];
+            for (let f = 10; f <= maxFreq; f += 5) {
+                freq.push(f);
+            }
+            frequencyCache[cacheKey] = freq;
+            return freq;
+        }
+
+        function selectMat(resultsMatrix, initFp, initFg, canvasId) {
+            if (!resultsMatrix || resultsMatrix.length === 0) { 
+                return { x: [], y: [] };
+            }
+
+            const dataField = getDataField(canvasId);
+            const x = [];
+            const y = [];
+
+            const excitation = document.getElementById("anregung").value;
+            
+            if (!rangeFp || !rangeFg || rangeFp.length === 0 || rangeFg.length === 0) { 
+                return { x: [], y: [] };
+            }
+
+            const maxFreq = getMaxFreq(excitation);
+            const freq = buildFrequencyArray(maxFreq);
+
+            const initFpNum = Number(initFp);
+            const initFgNum = Number(initFg);
+
+            // Group data by subject
+            const subjectMap = {};
+            for (const row of resultsMatrix) {
+                const subjectNum = row.SubjectNumber;
+                if (!subjectMap[subjectNum]) {
+                    subjectMap[subjectNum] = [];
                 }
+                subjectMap[subjectNum].push(row);
+            }
 
-                function shouldTakeAbs(canvasId) {
-                    return canvasId === "chartMI" || canvasId === "chartVPA";
-                }
+            for (let i = 0; i < freq.length; i++) {
+                const allValues = [];
 
-                function getMaxFreq(excitation) {
-                    if (excitation.startsWith("rotatorisch")) {
-                        return 100;
-                    }
-                    if (excitation === "translatorischY") {
-                        return 100;
-                    }
-                    return 500;
-                }
+                // Process each subject separately
+                for (const subjectNum in subjectMap) {
+                    const subjectData = subjectMap[subjectNum];
+                    const subjectRangeFp = getUnionRange(subjectData, "TargetPushForce").filter(Number.isFinite);
+                    const subjectRangeFg = getUnionRange(subjectData, "TargetGripForce").filter(Number.isFinite);
+                    const minFp = math.min(subjectRangeFp);
+                    const maxFp = math.max(subjectRangeFp);
+                    const minFg = math.min(subjectRangeFg);
+                    const maxFg = math.max(subjectRangeFg);
 
-                function getMaxY(canvasId, excitation) {
-                    // Only affect MI charts
-                    if (canvasId === "chartMI" || canvasId === "chartMI_Mod") {
-                        if (excitation.startsWith("rotatorisch")) {
-                            return "1";
-                        } else {
-                            return "800";
-                        }
-                    }
-                    return null; // Return null for non-MI charts
-                }
+                    if (subjectRangeFp.length === 0 || subjectRangeFg.length === 0) continue;
 
-                function buildFrequencyArray(maxFreq) {
-                    const cacheKey = `freq_${maxFreq}`;
-                    if (frequencyCache[cacheKey]) {
-                        return frequencyCache[cacheKey];
-                    }
-                    
-                    const freq = [];
-                    for (let f = 10; f <= maxFreq; f += 5) {
-                        freq.push(f);
-                    }
-                    frequencyCache[cacheKey] = freq;
-                    return freq;
-                }
+                    const valMI = [];
+                    const data_Fg_low_Fp_low = [];
+                    const data_Fg_low_Fp_high = [];
+                    const data_Fg_high_Fp_low = [];
+                    const data_Fg_high_Fp_high = [];
+                    let Fp_low, Fp_high, Fg_low, Fg_high;
+                    let distanceFp_low, distanceFg_low;
 
-                function selectMat(resultsMatrix, initFp, initFg, canvasId) {
-                    if (!resultsMatrix || resultsMatrix.length === 0) { 
-                        return { x: [], y: [] };
-                    }
+                    for (const row of subjectData) {
+                        let value = row[dataField]?.[i];
+                        if (value == null) continue;
 
-                    const dataField = getDataField(canvasId);
-                    const x = [];
-                    const y = [];
-
-                    const excitation = document.getElementById("anregung").value;
-                    
-                    if (!rangeFp || !rangeFg || rangeFp.length === 0 || rangeFg.length === 0) { 
-                        return { x: [], y: [] };
-                    }
-
-                    const maxFreq = getMaxFreq(excitation);
-                    const freq = buildFrequencyArray(maxFreq);
-
-                    const initFpNum = Number(initFp);
-                    const initFgNum = Number(initFg);
-
-                    // Group data by subject
-                    const subjectMap = {};
-                    for (const row of resultsMatrix) {
-                        const subjectNum = row.SubjectNumber;
-                        if (!subjectMap[subjectNum]) {
-                            subjectMap[subjectNum] = [];
-                        }
-                        subjectMap[subjectNum].push(row);
-                    }
-
-                    for (let i = 0; i < freq.length; i++) {
-                        const allValues = [];
-
-                        // Process each subject separately
-                        for (const subjectNum in subjectMap) {
-                            const subjectData = subjectMap[subjectNum];
-                            const subjectRangeFp = getUnionRange(subjectData, "TargetPushForce").filter(Number.isFinite);
-                            const subjectRangeFg = getUnionRange(subjectData, "TargetGripForce").filter(Number.isFinite);
-                            const minFp = math.min(subjectRangeFp);
-                            const maxFp = math.max(subjectRangeFp);
-                            const minFg = math.min(subjectRangeFg);
-                            const maxFg = math.max(subjectRangeFg);
-
-                            if (subjectRangeFp.length === 0 || subjectRangeFg.length === 0) continue;
-
-                            const valMI = [];
-                            const data_Fg_low_Fp_low = [];
-                            const data_Fg_low_Fp_high = [];
-                            const data_Fg_high_Fp_low = [];
-                            const data_Fg_high_Fp_high = [];
-                            let Fp_low, Fp_high, Fg_low, Fg_high;
-                            let distanceFp_low, distanceFg_low;
-
-                            for (const row of subjectData) {
-                                let value = row[dataField]?.[i];
-                                if (value == null) continue;
-
-                                if (shouldTakeAbs(canvasId)) {
-                                    value = math.abs(value);
-                                }
-
-                                const rowFpNum = Number(row.TargetPushForce);
-                                const rowFgNum = Number(row.TargetGripForce);
-
-                                // Exact match
-                                if (rowFpNum === initFpNum && rowFgNum === initFgNum) {
-                                    valMI.push(value);
-                                }
-                                
-                                if (!subjectRangeFp.includes(initFpNum) || !subjectRangeFg.includes(initFgNum)) {
-                                    if (initFpNum <= minFp) {
-                                        // lower boundary
-                                        Fp_low = minFp;
-                                        Fp_high = subjectRangeFp.find(v => v > minFp);
-                                    } 
-                                    else if (initFpNum >= maxFp) {
-                                        // upper boundary
-                                        Fp_low = subjectRangeFp.filter(v => v < maxFp).at(-1);
-                                        Fp_high = maxFp;
-                                    } 
-                                    else {
-                                        // normal interpolation
-                                        Fp_low = subjectRangeFp.filter(v => v <= initFpNum).at(-1);
-                                        Fp_high = subjectRangeFp.find(v => v > initFpNum);
-                                    }
-                                    if (initFgNum <= minFg) {
-                                        // lower boundary
-                                        Fg_low = minFg;
-                                        Fg_high = subjectRangeFg.find(v => v > minFg);
-                                    } 
-                                    else if (initFgNum >= maxFg) {
-                                        // upper boundary
-                                        Fg_low = subjectRangeFg.filter(v => v < maxFg).at(-1);
-                                        Fg_high = maxFg;
-                                    } 
-                                    else {
-                                        // normal interpolation
-                                        Fg_low = subjectRangeFg.filter(v => v <= initFgNum).at(-1);
-                                        Fg_high = subjectRangeFg.find(v => v > initFgNum);
-                                    }
-
-                                    if ([Fp_low, Fp_high, Fg_low, Fg_high].some(v => v == null)) {
-                                        continue;
-                                    }
-                                    distanceFp_low = (initFpNum-Fp_low) / (Fp_high - Fp_low);
-                                    distanceFg_low = (initFgNum-Fg_low) / (Fg_high - Fg_low);
-                                    
-                                    if (Number(row.TargetPushForce) == Fp_low  && Number(row.TargetGripForce) == Fg_low)
-                                        data_Fg_low_Fp_low.push(value);
-
-                                    if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_low)
-                                        data_Fg_low_Fp_high.push(value);
-
-                                    if (Number(row.TargetPushForce) == Fp_low  && Number(row.TargetGripForce) == Fg_high)
-                                        data_Fg_high_Fp_low.push(value);
-
-                                    if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_high)
-                                        data_Fg_high_Fp_high.push(value);
-                                    //console.log({ Fp_low, Fp_high, Fg_low, Fg_high });
-
-                                    // Check if we have valid boundaries
-                                    /*if (Fp_low !== undefined && Fp_high !== undefined && Fg_low !== undefined && Fg_high !== undefined) {
-                                        if (rowFpNum === Fp_low && rowFgNum === Fg_low) {
-                                            data_Fg_low_Fp_low.push(value);
-                                        }
-                                        if (rowFpNum === Fp_high && rowFgNum === Fg_low) {
-                                            data_Fg_low_Fp_high.push(value);
-                                        }
-                                        if (rowFpNum === Fp_low && rowFgNum === Fg_high) {
-                                            data_Fg_high_Fp_low.push(value);
-                                        }
-                                        if (rowFpNum === Fp_high && rowFgNum === Fg_high) {
-                                            data_Fg_high_Fp_high.push(value);
-                                        }
-                                    }*/
-                                }
-                            }
-
-                            // Use exact match if available
-                            if (valMI.length > 0) {
-                                allValues.push(math.mean(valMI));
-                            } else if (data_Fg_low_Fp_low.length > 0 && data_Fg_low_Fp_high.length > 0 && 
-                                    data_Fg_high_Fp_low.length > 0 && data_Fg_high_Fp_high.length > 0) {
-
-                                //const distanceFp_low = (initFpNum - Fp_low) / (Fp_high - Fp_low);
-                                //const distanceFg_low = (initFgNum - Fg_low) / (Fg_high - Fg_low);
-
-                                const data_low_low_med = math.mean(math.abs(data_Fg_low_Fp_low));
-                                const data_low_high_med = math.mean(math.abs(data_Fg_low_Fp_high));
-                                const data_high_low_med = math.mean(math.abs(data_Fg_high_Fp_low));
-                                const data_high_high_med = math.mean(math.abs(data_Fg_high_Fp_high));
-
-                                const Mi_inter_Fg_Fphigh = data_low_high_med * (1 - distanceFg_low) + data_high_high_med * distanceFg_low;
-                                const Mi_inter_Fg_Fplow = data_low_low_med * (1 - distanceFg_low) + data_high_low_med * distanceFg_low;
-                                const Mi_inter = Mi_inter_Fg_Fplow * (1 - distanceFp_low) + Mi_inter_Fg_Fphigh * distanceFp_low;
-                                
-                                allValues.push(Mi_inter);
-                            } 
+                        if (shouldTakeAbs(canvasId)) {
+                            value = math.abs(value);
                         }
 
-                        // Only add to chart if at least one subject has data
-                        if (allValues.length > 0) {
-                            y.push(math.mean(allValues));
-                            x.push(freq[i]);
+                        const rowFpNum = Number(row.TargetPushForce);
+                        const rowFgNum = Number(row.TargetGripForce);
+
+                        // Exact match
+                        if (rowFpNum === initFpNum && rowFgNum === initFgNum) {
+                            valMI.push(value);
                         }
-                    }
-                    return { x, y };
-                }
-
-                function createChart({canvasId,chartRef,resultsMatrix,store,AK,GK,minValue,axisTitel,labelPrefix,titel}) { // insertargument "maxValue" after minValue if needed to set max y-axis
-                    if (!resultsMatrix) return chartRef;
-
-                    const isMod = canvasId.includes("_Mod");
-                    const currentActiveLine = isMod ? activeLine_Mod : activeLine;
-                    const currentShowSecondLegend = isMod ? showSecondLegend_Mod : showSecondLegend;
-
-                    const initFp = AK;
-                    const initFg = GK;
-
-                    const liveData = isMod
-                        ? callModelData(resultsMatrix, Number(initFp), Number(initFg), canvasId)
-                        : selectMat(resultsMatrix, initFp, initFg, canvasId);
-
-                    const excitation = isMod
-                        ? document.getElementById("anregung_Mod").value
-                        : document.getElementById("anregung").value;
-
-                    const dynamicMaxY = getMaxY(canvasId, excitation);
-                    //const finalMaxValue = dynamicMaxY !== null ? dynamicMaxY : maxValue;
-
-                    store[currentActiveLine] = {
-                        x: liveData.x,
-                        y: liveData.y,
-                        Fp: initFp,
-                        Fg: initFg
-                    };
-
-                    if (chartRef) {
-                        //chartRef.options.scales.y.max = finalMaxValue;
-                        chartRef.data.labels = liveData.x;
-
-                        chartRef.data.datasets[0].data = store[0]?.y ?? [];
-                        chartRef.data.datasets[1].data = store[1]?.y ?? [];
-
-                        chartRef.data.datasets[0].label = store[0]
-                            ? `${labelPrefix} (Fp: ${store[0].Fp}; Fg: ${store[0].Fg})`
-                            : `${labelPrefix}`;
                         
-                        chartRef.data.datasets[1].label = store[1]
-                            ? `${labelPrefix} (Fp: ${store[1].Fp}; Fg: ${store[1].Fg})`
-                            : `${labelPrefix}`;
-
-                        chartRef.data.datasets[0].hidden = false;
-
-                        chartRef.data.datasets[1].hidden = !currentShowSecondLegend;
-
-                        chartRef.options.plugins.legend.labels.filter = (legendItem) => {
-                            if (legendItem.datasetIndex === 1 && !currentShowSecondLegend) {
-                                return false;
+                        if (!subjectRangeFp.includes(initFpNum) || !subjectRangeFg.includes(initFgNum)) {
+                            if (initFpNum <= minFp) {
+                                // lower boundary
+                                Fp_low = minFp;
+                                Fp_high = subjectRangeFp.find(v => v > minFp);
+                            } 
+                            else if (initFpNum >= maxFp) {
+                                // upper boundary
+                                Fp_low = subjectRangeFp.filter(v => v < maxFp).at(-1);
+                                Fp_high = maxFp;
+                            } 
+                            else {
+                                // normal interpolation
+                                Fp_low = subjectRangeFp.filter(v => v <= initFpNum).at(-1);
+                                Fp_high = subjectRangeFp.find(v => v > initFpNum);
                             }
-                            return true;
-                        };
+                            if (initFgNum <= minFg) {
+                                // lower boundary
+                                Fg_low = minFg;
+                                Fg_high = subjectRangeFg.find(v => v > minFg);
+                            } 
+                            else if (initFgNum >= maxFg) {
+                                // upper boundary
+                                Fg_low = subjectRangeFg.filter(v => v < maxFg).at(-1);
+                                Fg_high = maxFg;
+                            } 
+                            else {
+                                // normal interpolation
+                                Fg_low = subjectRangeFg.filter(v => v <= initFgNum).at(-1);
+                                Fg_high = subjectRangeFg.find(v => v > initFgNum);
+                            }
 
-                        chartRef.update("none");
-                        return chartRef;
+                            if ([Fp_low, Fp_high, Fg_low, Fg_high].some(v => v == null)) {
+                                continue;
+                            }
+                            distanceFp_low = (initFpNum-Fp_low) / (Fp_high - Fp_low);
+                            distanceFg_low = (initFgNum-Fg_low) / (Fg_high - Fg_low);
+                            
+                            if (Number(row.TargetPushForce) == Fp_low  && Number(row.TargetGripForce) == Fg_low)
+                                data_Fg_low_Fp_low.push(value);
+
+                            if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_low)
+                                data_Fg_low_Fp_high.push(value);
+
+                            if (Number(row.TargetPushForce) == Fp_low  && Number(row.TargetGripForce) == Fg_high)
+                                data_Fg_high_Fp_low.push(value);
+
+                            if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_high)
+                                data_Fg_high_Fp_high.push(value);
+                            //console.log({ Fp_low, Fp_high, Fg_low, Fg_high });
+
+                            // Check if we have valid boundaries
+                            /*if (Fp_low !== undefined && Fp_high !== undefined && Fg_low !== undefined && Fg_high !== undefined) {
+                                if (rowFpNum === Fp_low && rowFgNum === Fg_low) {
+                                    data_Fg_low_Fp_low.push(value);
+                                }
+                                if (rowFpNum === Fp_high && rowFgNum === Fg_low) {
+                                    data_Fg_low_Fp_high.push(value);
+                                }
+                                if (rowFpNum === Fp_low && rowFgNum === Fg_high) {
+                                    data_Fg_high_Fp_low.push(value);
+                                }
+                                if (rowFpNum === Fp_high && rowFgNum === Fg_high) {
+                                    data_Fg_high_Fp_high.push(value);
+                                }
+                            }*/
+                        }
                     }
 
-                    const ctx = document.getElementById(canvasId);
-                    return new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: liveData.x,
-                            datasets: [
-                                {
-                                    label: `${labelPrefix} (Fp: ${initFp}; Fg: ${initFg})`,
-                                    data: store[0]?.y ?? [],
-                                    showLine: false,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    pointStyle: 'circle',
-                                    borderColor: 'rgba(0,0,255,0.8)',
-                                    backgroundColor: 'rgba(0,0,0,0)',
-                                    pointBorderColor: 'rgba(0,0,255,0.8)',
-                                    pointBackgroundColor: 'rgba(0,0,0,0)',
-                                    pointBorderWidth: 1
-                                },
-                                {
-                                    label: `${labelPrefix} (Fp: ${initFp}; Fg: ${initFg})`,
-                                    data: store[1]?.y ?? [],
-                                    hidden: !currentShowSecondLegend,
-                                    showLine: false,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    pointStyle: 'circle',
-                                    borderColor: '#E66A3C',
-                                    backgroundColor: 'rgba(0,0,0,0)',
-                                    pointBorderColor: '#E66A3C',
-                                    pointBackgroundColor: 'rgba(0,0,0,0)',
-                                    pointBorderWidth: 1
-                                }
-                            ]
+                    // Use exact match if available
+                    if (valMI.length > 0) {
+                        allValues.push(math.mean(valMI));
+                    } else if (data_Fg_low_Fp_low.length > 0 && data_Fg_low_Fp_high.length > 0 && 
+                            data_Fg_high_Fp_low.length > 0 && data_Fg_high_Fp_high.length > 0) {
+
+                        //const distanceFp_low = (initFpNum - Fp_low) / (Fp_high - Fp_low);
+                        //const distanceFg_low = (initFgNum - Fg_low) / (Fg_high - Fg_low);
+
+                        const data_low_low_med = math.mean(math.abs(data_Fg_low_Fp_low));
+                        const data_low_high_med = math.mean(math.abs(data_Fg_low_Fp_high));
+                        const data_high_low_med = math.mean(math.abs(data_Fg_high_Fp_low));
+                        const data_high_high_med = math.mean(math.abs(data_Fg_high_Fp_high));
+
+                        const Mi_inter_Fg_Fphigh = data_low_high_med * (1 - distanceFg_low) + data_high_high_med * distanceFg_low;
+                        const Mi_inter_Fg_Fplow = data_low_low_med * (1 - distanceFg_low) + data_high_low_med * distanceFg_low;
+                        const Mi_inter = Mi_inter_Fg_Fplow * (1 - distanceFp_low) + Mi_inter_Fg_Fphigh * distanceFp_low;
+                        
+                        allValues.push(Mi_inter);
+                    } 
+                }
+
+                // Only add to chart if at least one subject has data
+                if (allValues.length > 0) {
+                    y.push(math.mean(allValues));
+                    x.push(freq[i]);
+                }
+            }
+            return { x, y };
+        }
+
+        function createChart({canvasId,chartRef,resultsMatrix,store,AK,GK,minValue,axisTitel,labelPrefix}) { // insertargument "maxValue" after minValue if needed to set max y-axis
+            if (!resultsMatrix) return chartRef;
+
+            const isMod = canvasId.includes("_Mod");
+            const currentActiveLine = isMod ? activeLine_Mod : activeLine;
+            const currentShowSecondLegend = isMod ? showSecondLegend_Mod : showSecondLegend;
+
+            const initFp = AK;
+            const initFg = GK;
+
+            const liveData = isMod
+                ? callModelData(resultsMatrix, Number(initFp), Number(initFg), canvasId)
+                : selectMat(resultsMatrix, initFp, initFg, canvasId);
+
+            const excitation = isMod
+                ? document.getElementById("anregung_Mod").value
+                : document.getElementById("anregung").value;
+
+            const dynamicMaxY = getMaxY(canvasId, excitation);
+            //const finalMaxValue = dynamicMaxY !== null ? dynamicMaxY : maxValue;
+
+            store[currentActiveLine] = {
+                x: liveData.x,
+                y: liveData.y,
+                Fp: initFp,
+                Fg: initFg
+            };
+
+            if (chartRef) {
+                //chartRef.options.scales.y.max = finalMaxValue;
+                chartRef.data.labels = liveData.x;
+
+                chartRef.data.datasets[0].data = store[0]?.y ?? [];
+                chartRef.data.datasets[1].data = store[1]?.y ?? [];
+
+                chartRef.data.datasets[0].label = store[0]
+                    ? `${labelPrefix} (Fp: ${store[0].Fp}; Fg: ${store[0].Fg})`
+                    : `${labelPrefix}`;
+                
+                chartRef.data.datasets[1].label = store[1]
+                    ? `${labelPrefix} (Fp: ${store[1].Fp}; Fg: ${store[1].Fg})`
+                    : `${labelPrefix}`;
+
+                chartRef.data.datasets[0].hidden = false;
+
+                chartRef.data.datasets[1].hidden = !currentShowSecondLegend;
+
+                chartRef.options.plugins.legend.labels.filter = (legendItem) => {
+                    if (legendItem.datasetIndex === 1 && !currentShowSecondLegend) {
+                        return false;
+                    }
+                    return true;
+                };
+
+                chartRef.update("none");
+                return chartRef;
+            }
+
+            const ctx = document.getElementById(canvasId);
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: liveData.x,
+                    datasets: [
+                        {
+                            label: `${labelPrefix} (Fp: ${initFp}; Fg: ${initFg})`,
+                            data: store[0]?.y ?? [],
+                            showLine: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointStyle: 'circle',
+                            borderColor: 'rgba(0,0,255,0.8)',
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            pointBorderColor: 'rgba(0,0,255,0.8)',
+                            pointBackgroundColor: 'rgba(0,0,0,0)',
+                            pointBorderWidth: 1
                         },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'top',
-                                    align: 'end',
-                                    labels: { 
-                                        usePointStyle: true,
-                                        pointStyle: 'circle',
-                                        boxWidth: 4,
-                                        boxHeight: 5,
-                                        padding: 12,
-                                        font: { size: 12 },
-                                        filter: (legendItem) => {
-                                            if (legendItem.datasetIndex === 1 && !currentShowSecondLegend) {
-                                                return false;
-                                            }
-                                            return true;
-                                        }
+                        {
+                            label: `${labelPrefix} (Fp: ${initFp}; Fg: ${initFg})`,
+                            data: store[1]?.y ?? [],
+                            hidden: !currentShowSecondLegend,
+                            showLine: false,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            pointStyle: 'circle',
+                            borderColor: '#E66A3C',
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            pointBorderColor: '#E66A3C',
+                            pointBackgroundColor: 'rgba(0,0,0,0)',
+                            pointBorderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                            labels: { 
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                boxWidth: 4,
+                                boxHeight: 5,
+                                padding: 12,
+                                font: { size: 12 },
+                                filter: (legendItem) => {
+                                    if (legendItem.datasetIndex === 1 && !currentShowSecondLegend) {
+                                        return false;
                                     }
-                                },
-                                title: {
-                                    display: true,
-                                    text: titel,
-                                    padding: { top: 20, bottom: 0 },
-                                    font: { size: 14 }
-                                }
-                            },
-                            scales: {
-                                x: {
-                                    title: { display: true, text: 'Frequency in Hz' },
-                                    min: 10,
-                                    max: 500,
-                                    type: 'logarithmic'
-                                },
-                                y: {
-                                    title: { display: true, text: axisTitel },
-                                    min: minValue,
-                                    //max: finalMaxValue,
-                                    ticks: {
-                                        callback: value => {
-                                            const v = Number(value);
-                                            return Number.isInteger(v) ? v : v.toFixed(2);
-                                        }
-                                    }
+                                    return true;
                                 }
                             }
-                        }
-                    });
-                }
-
-                function callModelData(resultsMatrix, Fp, Fg, canvasId){
-
-                    if (!rangeFp_Mod || !rangeFg_Mod) { 
-                        return { x: [], y: [] };
-                    }
-
-                    const dataField = getDataField(canvasId);
-                    const x = [];
-                    const y = [];
-
-                    const excitation_Mod = document.getElementById("anregung_Mod").value;
-                    const maxFreq = getMaxFreq(excitation_Mod);
-                    const freq = buildFrequencyArray(maxFreq);
-                    const w = freq.map(f => 2*Math.PI*f);
-
-                    const m_model = matlabModel(Fg, Fp, m_beta); // add resultsMatrix if needed for Matlab modell
-                    const d_model = matlabModel(Fg, Fp, d_beta); // add resultsMatrix if needed for Matlab modell
-                    const k_model = matlabModel(Fg, Fp, k_beta); // add resultsMatrix if needed for Matlab modell
-
-                    if (!m_model.length || !d_model.length || !k_model.length) {
-                        console.warn("Model returned empty vectors");
-                        return { x: [], y: [] };
-                    }
-
-                    const {Zmod} = impedance_mkd(
-                        m_model,
-                        d_model,
-                        k_model,
-                        w
-                    );
-
-                    const phase_mod = Zmod.map(z => Math.atan2(z.im, z.re));
-
-                    for (let f = 0; f < freq.length; f++) {
-                        if(dataField === "MI" || dataField === "MI_Mod"){
-                            y.push(Zmod[f].re);
-                        }
-                        if(dataField === "Phase" || dataField === "Phase_Mod"){
-                            y.push(phase_mod[f]);
-                        }
-                        x.push(freq[f]);
-                    }
-                    return { x, y };
-                }
-
-                function impedance_mkd(m, d, k, w) {
-                    const n = m.length;
-
-                    const M = zeros(n, n);
-                    for (let i = 0; i < n; i++) M[i][i] = m[i];
-
-                    const C = zeros(n, n);
-                    const K = zeros(n, n);
-
-                    for (let i = 0; i < n; i++) {
-                        if (i > 0) {
-                            C[i][i - 1] = -d[i - 1];
-                            K[i][i - 1] = -k[i - 1];
-                        }
-                        if (i < n - 1) {
-                            C[i][i + 1] = -d[i];
-                            K[i][i + 1] = -k[i];
-                        }
-                        if (i === 0) {
-                            C[i][i] = d[0];
-                            K[i][i] = k[0];
-                        } else if (i === n - 1) {
-                            C[i][i] = d[n - 2] + d[n - 1];
-                            K[i][i] = k[n - 2] + k[n - 1];
-                        } else {
-                            C[i][i] = d[i - 1] + d[i];
-                            K[i][i] = k[i - 1] + k[i];
-                        }
-                    }
-
-                    const F = Array(n).fill(null).map(() => ({ re: 1, im: 0 }));
-                    F[0] = { re: 1, im: 0 };
-                    for (let i = 1; i < n; i++) F[i] = { re: 0, im: 0 };
-
-                    const nK = matrixNorm2(K);
-                    const nC = matrixNorm2(C);
-                    const nM = matrixNorm2(M);
-
-                    const tolRcond = 1e-12;
-                    const tau = 1e-8;
-
-                    const Zmod = [];
-                    const Ymod = [];
-
-                    for (let i = 0; i < w.length; i++) {
-                        const wi = w[i];
-
-                        let D = zeros(n, n).map((row, r) =>
-                            row.map((_, c) => ({
-                                re: K[r][c] - wi * wi * M[r][c],
-                                im: wi * C[r][c]
-                            }))
-                        );
-
-                        const rc = rcondComplex(D);
-                        if (rc < tolRcond) {
-                            const eps = tau * (nK + wi * nC + wi * wi * nM);
-                            for (let j = 0; j < n; j++) {
-                                D[j][j].re += eps;
+                        },
+                        /*title: {
+                            display: true,
+                            text: titel,
+                            padding: { top: 20, bottom: 0 },
+                            font: { size: 14 }
+                        }*/
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Frequency in Hz' },
+                            min: 10,
+                            max: 500,
+                            type: 'logarithmic'
+                        },
+                        y: {
+                            title: { display: true, text: axisTitel },
+                            min: minValue,
+                            //max: finalMaxValue,
+                            ticks: {
+                                callback: value => {
+                                    const v = Number(value);
+                                    return Number.isInteger(v) ? v : v.toFixed(2);
+                                }
                             }
                         }
-
-                        const q = solveComplex(D, F);
-
-                        const v1 = {
-                            re: -wi * q[0].im,
-                            im: wi * q[0].re
-                        };
-
-                        Ymod.push({ ...v1 });
-                        Zmod.push(complexDiv({ re: 1, im: 0 }, v1));
                     }
-
-                    return { Zmod, Ymod };
                 }
+            });
+        }
 
-                function zeros(rows, cols) {
-                    return Array(rows).fill(null).map(() => Array(cols).fill(0));
+        function callModelData(resultsMatrix, Fp, Fg, canvasId){
+
+            if (!rangeFp_Mod || !rangeFg_Mod) { 
+                return { x: [], y: [] };
+            }
+
+            const dataField = getDataField(canvasId);
+            const x = [];
+            const y = [];
+
+            const excitation_Mod = document.getElementById("anregung_Mod").value;
+            const maxFreq = getMaxFreq(excitation_Mod);
+            const freq = buildFrequencyArray(maxFreq);
+            const w = freq.map(f => 2*Math.PI*f);
+
+            const m_model = matlabModel(Fg, Fp, m_beta); // add resultsMatrix if needed for Matlab modell
+            const d_model = matlabModel(Fg, Fp, d_beta); // add resultsMatrix if needed for Matlab modell
+            const k_model = matlabModel(Fg, Fp, k_beta); // add resultsMatrix if needed for Matlab modell
+
+            if (!m_model.length || !d_model.length || !k_model.length) {
+                console.warn("Model returned empty vectors");
+                return { x: [], y: [] };
+            }
+
+            const {Zmod} = impedance_mkd(
+                m_model,
+                d_model,
+                k_model,
+                w
+            );
+
+            const phase_mod = Zmod.map(z => Math.atan2(z.im, z.re));
+
+            for (let f = 0; f < freq.length; f++) {
+                if(dataField === "MI" || dataField === "MI_Mod"){
+                    y.push(Zmod[f].re);
                 }
+                if(dataField === "Phase" || dataField === "Phase_Mod"){
+                    y.push(phase_mod[f]);
+                }
+                x.push(freq[f]);
+            }
+            return { x, y };
+        }
 
-                function matrixNorm2(A) {
-                    let sum = 0;
-                    for (const row of A) {
-                        for (const val of row) {
-                            sum += val * val;
-                        }
+        function impedance_mkd(m, d, k, w) {
+            const n = m.length;
+
+            const M = zeros(n, n);
+            for (let i = 0; i < n; i++) M[i][i] = m[i];
+
+            const C = zeros(n, n);
+            const K = zeros(n, n);
+
+            for (let i = 0; i < n; i++) {
+                if (i > 0) {
+                    C[i][i - 1] = -d[i - 1];
+                    K[i][i - 1] = -k[i - 1];
+                }
+                if (i < n - 1) {
+                    C[i][i + 1] = -d[i];
+                    K[i][i + 1] = -k[i];
+                }
+                if (i === 0) {
+                    C[i][i] = d[0];
+                    K[i][i] = k[0];
+                } else if (i === n - 1) {
+                    C[i][i] = d[n - 2] + d[n - 1];
+                    K[i][i] = k[n - 2] + k[n - 1];
+                } else {
+                    C[i][i] = d[i - 1] + d[i];
+                    K[i][i] = k[i - 1] + k[i];
+                }
+            }
+
+            const F = Array(n).fill(null).map(() => ({ re: 1, im: 0 }));
+            F[0] = { re: 1, im: 0 };
+            for (let i = 1; i < n; i++) F[i] = { re: 0, im: 0 };
+
+            const nK = matrixNorm2(K);
+            const nC = matrixNorm2(C);
+            const nM = matrixNorm2(M);
+
+            const tolRcond = 1e-12;
+            const tau = 1e-8;
+
+            const Zmod = [];
+            const Ymod = [];
+
+            for (let i = 0; i < w.length; i++) {
+                const wi = w[i];
+
+                let D = zeros(n, n).map((row, r) =>
+                    row.map((_, c) => ({
+                        re: K[r][c] - wi * wi * M[r][c],
+                        im: wi * C[r][c]
+                    }))
+                );
+
+                const rc = rcondComplex(D);
+                if (rc < tolRcond) {
+                    const eps = tau * (nK + wi * nC + wi * wi * nM);
+                    for (let j = 0; j < n; j++) {
+                        D[j][j].re += eps;
                     }
-                    return Math.sqrt(sum);
                 }
 
-                function rcondComplex(A) {
-                    const n = A.length;
-                    let maxDiag = 0;
-                    let minDiag = Infinity;
-                    for (let i = 0; i < n; i++) {
-                        const mag = Math.sqrt(A[i][i].re ** 2 + A[i][i].im ** 2);
-                        if (mag > maxDiag) maxDiag = mag;
-                        if (mag < minDiag) minDiag = mag;
+                const q = solveComplex(D, F);
+
+                const v1 = {
+                    re: -wi * q[0].im,
+                    im: wi * q[0].re
+                };
+
+                Ymod.push({ ...v1 });
+                Zmod.push(complexDiv({ re: 1, im: 0 }, v1));
+            }
+
+            return { Zmod, Ymod };
+        }
+
+        function zeros(rows, cols) {
+            return Array(rows).fill(null).map(() => Array(cols).fill(0));
+        }
+
+        function matrixNorm2(A) {
+            let sum = 0;
+            for (const row of A) {
+                for (const val of row) {
+                    sum += val * val;
+                }
+            }
+            return Math.sqrt(sum);
+        }
+
+        function rcondComplex(A) {
+            const n = A.length;
+            let maxDiag = 0;
+            let minDiag = Infinity;
+            for (let i = 0; i < n; i++) {
+                const mag = Math.sqrt(A[i][i].re ** 2 + A[i][i].im ** 2);
+                if (mag > maxDiag) maxDiag = mag;
+                if (mag < minDiag) minDiag = mag;
+            }
+            return maxDiag === 0 ? 0 : minDiag / maxDiag;
+        }
+
+        function solveComplex(A, b) {
+            const n = A.length;
+
+            const M = A.map(row => row.map(c => ({ re: c.re, im: c.im })));
+            const rhs = b.map(c => ({ re: c.re, im: c.im }));
+
+            for (let col = 0; col < n; col++) {
+                let maxMag = 0;
+                let pivotRow = col;
+                for (let row = col; row < n; row++) {
+                    const mag = M[row][col].re ** 2 + M[row][col].im ** 2;
+                    if (mag > maxMag) {
+                        maxMag = mag;
+                        pivotRow = row;
                     }
-                    return maxDiag === 0 ? 0 : minDiag / maxDiag;
                 }
 
-                function solveComplex(A, b) {
-                    const n = A.length;
+                [M[col], M[pivotRow]] = [M[pivotRow], M[col]];
+                [rhs[col], rhs[pivotRow]] = [rhs[pivotRow], rhs[col]];
 
-                    const M = A.map(row => row.map(c => ({ re: c.re, im: c.im })));
-                    const rhs = b.map(c => ({ re: c.re, im: c.im }));
+                const pivot = M[col][col];
 
-                    for (let col = 0; col < n; col++) {
-                        let maxMag = 0;
-                        let pivotRow = col;
-                        for (let row = col; row < n; row++) {
-                            const mag = M[row][col].re ** 2 + M[row][col].im ** 2;
-                            if (mag > maxMag) {
-                                maxMag = mag;
-                                pivotRow = row;
-                            }
-                        }
-
-                        [M[col], M[pivotRow]] = [M[pivotRow], M[col]];
-                        [rhs[col], rhs[pivotRow]] = [rhs[pivotRow], rhs[col]];
-
-                        const pivot = M[col][col];
-
-                        for (let row = col + 1; row < n; row++) {
-                            const factor = complexDiv(M[row][col], pivot);
-                            for (let j = col; j < n; j++) {
-                                M[row][j] = complexSub(M[row][j], complexMul(factor, M[col][j]));
-                            }
-                            rhs[row] = complexSub(rhs[row], complexMul(factor, rhs[col]));
-                        }
+                for (let row = col + 1; row < n; row++) {
+                    const factor = complexDiv(M[row][col], pivot);
+                    for (let j = col; j < n; j++) {
+                        M[row][j] = complexSub(M[row][j], complexMul(factor, M[col][j]));
                     }
-
-                    const x = Array(n).fill(null).map(() => ({ re: 0, im: 0 }));
-                    for (let i = n - 1; i >= 0; i--) {
-                        let sum = { re: rhs[i].re, im: rhs[i].im };
-                        for (let j = i + 1; j < n; j++) {
-                            sum = complexSub(sum, complexMul(M[i][j], x[j]));
-                        }
-                        x[i] = complexDiv(sum, M[i][i]);
-                    }
-
-                    return x;
+                    rhs[row] = complexSub(rhs[row], complexMul(factor, rhs[col]));
                 }
+            }
 
-                function complexMul(a, b) {
-                    return {
-                        re: a.re * b.re - a.im * b.im,
-                        im: a.re * b.im + a.im * b.re
-                    };
+            const x = Array(n).fill(null).map(() => ({ re: 0, im: 0 }));
+            for (let i = n - 1; i >= 0; i--) {
+                let sum = { re: rhs[i].re, im: rhs[i].im };
+                for (let j = i + 1; j < n; j++) {
+                    sum = complexSub(sum, complexMul(M[i][j], x[j]));
                 }
+                x[i] = complexDiv(sum, M[i][i]);
+            }
 
-                function complexDiv(a, b) {
-                    const denom = b.re * b.re + b.im * b.im;
-                    return {
-                        re: (a.re * b.re + a.im * b.im) / denom,
-                        im: (a.im * b.re - a.re * b.im) / denom
-                    };
+            return x;
+        }
+
+        function complexMul(a, b) {
+            return {
+                re: a.re * b.re - a.im * b.im,
+                im: a.re * b.im + a.im * b.re
+            };
+        }
+
+        function complexDiv(a, b) {
+            const denom = b.re * b.re + b.im * b.im;
+            return {
+                re: (a.re * b.re + a.im * b.im) / denom,
+                im: (a.im * b.re - a.re * b.im) / denom
+            };
+        }
+
+        function complexSub(a, b) {
+            return { re: a.re - b.re, im: a.im - b.im };
+        }
+
+        function writeMeta(meta) {
+            if (!meta) return;
+
+            Object.entries(meta).forEach(([key, value]) => {
+                const el = document.getElementById(key);
+                if (!el) return;
+
+                if (typeof value === "number") {
+                    el.value = value.toFixed(3);
+                } else {
+                    el.value = value;
                 }
+            });
+        }
 
-                function complexSub(a, b) {
-                    return { re: a.re - b.re, im: a.im - b.im };
-                }
+        function clampPositive(vec, eps = 1e-9) {
+            return vec.map(v => Math.max(v, eps));
+        }
 
-                function writeMeta(meta) {
-                    if (!meta) return;
+        function matlabModel(Fg, Fp, modelMat) { // add resultsMatrix as argument when Matlab model will be dependent on resMat
+            if (!modelMat) return []; //if (!modelMat || !resultsMatrix) return [];
 
-                    Object.entries(meta).forEach(([key, value]) => {
-                        const el = document.getElementById(key);
-                        if (!el) return;
+            const X = buildX(Fg, Fp);
+            const result = math.multiply(X, math.transpose(modelMat));
+            const resultArray = Array.isArray(result) ? result.flat() : [result];
+            
+            return clampPositive(resultArray);
+        }
 
-                        if (typeof value === "number") {
-                            el.value = value.toFixed(3);
-                        } else {
-                            el.value = value;
-                        }
-                    });
-                }
+        function writeVector(prefix, vec) {
+            vec.forEach((v, i) => {
+                document.getElementById(`${prefix}${i + 1}`).value =
+                    Number(v).toFixed(3);
+            });
+        }
 
-                function clampPositive(vec, eps = 1e-9) {
-                    return vec.map(v => Math.max(v, eps));
-                }
+        function updateUI() {
+            if (!m_beta || !d_beta || !k_beta) return; // if (!m_beta || !d_beta || !k_beta || !mechImpe_Mod) return; // add if needed for Matlab modell
 
-                function matlabModel(Fg, Fp, modelMat) { // add resultsMatrix as argument when Matlab model will be dependent on resMat
-                    if (!modelMat) return []; //if (!modelMat || !resultsMatrix) return [];
+            const Fg = Number(DOM.sliderGK_Mod?.value);
+            const Fp = Number(DOM.sliderAK_Mod?.value);
 
-                    const X = buildX(Fg, Fp);
-                    const result = math.multiply(X, math.transpose(modelMat));
-                    const resultArray = Array.isArray(result) ? result : [result];
-                    
-                    return clampPositive(resultArray);
-                }
+            if (Fg == null || Fp == null) return;
 
-                function writeVector(prefix, vec) {
-                    vec.forEach((v, i) => {
-                        document.getElementById(`${prefix}${i + 1}`).value =
-                            Number(v).toFixed(3);
-                    });
-                }
+            writeVector("m", matlabModel(Fg, Fp, m_beta)); // add mechImpe_Mod if needed for Matlab modell
+            writeVector("k", matlabModel(Fg, Fp, k_beta)); // add mechImpe_Mod if needed for Matlab modell
+            writeVector("d", matlabModel(Fg, Fp, d_beta)); // add mechImpe_Mod if needed for Matlab modell
 
-                function updateUI() {
-                    if (!m_beta || !d_beta || !k_beta) return; // if (!m_beta || !d_beta || !k_beta || !mechImpe_Mod) return; // add if needed for Matlab modell
-
-                    const Fg = Number(DOM.sliderGK_Mod?.value);
-                    const Fp = Number(DOM.sliderAK_Mod?.value);
-
-                    if (Fg == null || Fp == null) return;
-
-                    writeVector("m", matlabModel(Fg, Fp, m_beta)); // add mechImpe_Mod if needed for Matlab modell
-                    writeVector("k", matlabModel(Fg, Fp, k_beta)); // add mechImpe_Mod if needed for Matlab modell
-                    writeVector("d", matlabModel(Fg, Fp, d_beta)); // add mechImpe_Mod if needed for Matlab modell
-
-                    const meta = extractSubjectMeta(mechImpe);
-                    //console.log(mechImpe);
-                    writeMeta(meta);
-                }
+            const meta = extractSubjectMeta(mechImpe);
+            //console.log(mechImpe);
+            writeMeta(meta);
+        }
     </script>
     </div>
 </body>

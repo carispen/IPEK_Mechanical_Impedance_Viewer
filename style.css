@@ -1,9 +1,122 @@
-div {
-  /*padding-top: 5px;
-  padding-bottom: 10px;*/
-  padding-right: 5px;
-  padding-left: 5px;
-  text-align: center;
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background: #f5f7fa;
+    color: #333;
+}
+
+.site-header {
+    background: linear-gradient(90deg,#003b82,#0052a3);
+
+    color: white;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 20px 40px;
+
+    border-radius: 0;
+    border: none;
+
+    margin-bottom: 0;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+}
+
+.header-right img {
+    height: 45px;
+    width: auto;
+}
+
+.site-header h1 {
+    color: white;
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.site-header p {
+    color: rgba(255,255,255,0.85);
+}
+
+.wizard {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+
+    padding: 20px;
+    background: white;
+    border-bottom: 1px solid #e2e6eb;
+}
+
+.step {
+    position: relative;
+    color: #888;
+}
+
+.step.active {
+    color: #0052a3;
+    font-weight: 600;
+}
+
+.dashboard {
+    display: grid;
+    grid-template-columns: 320px 1fr 320px;
+    gap: 20px;
+    padding: 20px;
+}
+
+.dashboard-row {
+    display: grid;
+    grid-template-columns: 1.1fr 2fr 1.3fr; /* Aligns left panels, large centers, and readable parameter cards */
+    gap: 24px;
+    padding: 0 40px 24px 40px;
+    background: #f8fafc;
+}
+
+/* Info dividing row styling */
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 40px;
+    background: #ffffff;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+    gap: 20px;
+}
+.info-row div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #1e3a8a;
+    font-weight: 500;
+}
+
+/* Left column */
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Center column */
+.center-panel {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+
+/* Right column */
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 html, body {
@@ -23,14 +136,6 @@ html, body {
     display: flex;
     justify-content: space-around;
     align-items: center;
-}
-
-/* The horizontal divider */
-.divider {
-    width: 100%;
-    height: 3px;
-    background-color: #000000;
-    margin: 10px 0;
 }
 
 /* Everything for the dropdown menu */
@@ -130,7 +235,7 @@ input[type="range"] {
     column-gap: 15%;                  /* BIG space between label & input */
     row-gap: 6px;
     align-items: right;
-    padding-top: 40px;
+    padding-top: 20px;
     padding-bottom: 20px;
 }
 
@@ -174,51 +279,98 @@ input[type="range"] {
     font-size: 14px;
 }
 
-
-/* Create three unequal columns that floats next to each other */
-.column {
-  float: left;
-  padding: 10px;
-   /* height: 300px; Should be removed. Only for demonstration */
+.box {
+    background: white;
+    border: 1px solid #dfe5ec;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,.05);
+    height: 100%;
 }
 
-.left {
-  width: 25%;
-  /*width: 330px;*/
+.card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #eceff4;
+    padding-bottom: 10px;
 }
 
-.right {
-  width: 35%;
+.chart-card {
+    background: white;
+    border: 1px solid #dfe5ec;
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
-.middle {
-  width: 40%;
-  padding-left: 20px;
-  padding-right: 20px;
-  text-align: center;
+.tab-header {
+    display: flex;
+    gap: 20px;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
 }
 
-/* Clear floats after the columns */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
+.tab-header button {
+    background: none;
+    border: none;
+    padding: 10px 18px;
+    cursor: pointer;
+    color: #666;
+    font-size: 14px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
 }
 
-.vl {
-  position: fixed;          /* ← key change */
-  top: 0;
-  bottom: 0;                /* span full viewport height */
-  left: 25%; /*330px;*/
-  width: 0;
-  border-left: 2px solid black;
-  z-index: 999;             /* keep it above content */
+.tab-header button:hover {
+    color: #003b8e;
 }
 
-.chartContainer {
-  width: 100%;
-  height: 48vh;
-  padding-bottom: 20px;
+.tab-header button.active {
+    color: #003b8e;
+    font-weight: 600;
+    border-bottom: 2px solid #003b8e;
+}
+
+.chart-area {
+    display: flex;
+    gap: 20px;
+}
+
+.chart-container {
+    flex: 1;
+    position: relative;
+}
+
+.top-chart-card .chart-container {
+    height: 420px;
+}
+
+.info-box {
+    width: 180px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.info-box h4 {
+    margin-top: 0;
+    font-size: 15px;
+    color: #003b8e;
+}
+
+/* Hide all tab charts by default */
+.top-chart, .mod-chart {
+    display: none !important;
+}
+
+/* Display only the active tab chart */
+.top-chart.active, .mod-chart.active {
+    display: block !important;
 }
 
 .flex-container {
