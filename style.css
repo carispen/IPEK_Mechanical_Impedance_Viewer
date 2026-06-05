@@ -138,145 +138,263 @@ html, body {
     align-items: center;
 }
 
-/* Everything for the dropdown menu */
-.control-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0px;
+/* For the text field and slider */
+.selection-group {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-bottom: 25px;
 }
 
-.control-row {
-  display: flex;
-  align-items: right;
-  gap: 0px;
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
 }
 
-.control-row label {
-  min-width: 10px;
-  text-align: right;
-  color: #000;
+.control-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
 }
 
-.control-row select {
-  padding: 4px 28px 4px 8px;
-  border: 1px solid #aaa;
-  border-radius: 6px;
-  background-color: #fff;
-  cursor: pointer;
+.control-group select {
+    width: 100%;
+    height: 42px;
 
-  /* Remove default OS styling (important!) */
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+    padding: 0 14px;
 
-  /* Custom dropdown arrow */
-  background-image:
-    linear-gradient(45deg, transparent 50%, #555 50%),
-    linear-gradient(135deg, #555 50%, transparent 50%);
-  background-position:
-    calc(100% - 16px) 50%,
-    calc(100% - 10px) 50%;
-  background-size: 6px 6px;
-  background-repeat: no-repeat;
+    border: 1px solid #d7dde5;
+    border-radius: 8px;
+
+    background: white;
+    font-size: 14px;
 }
 
-.control-row select:focus {
-  outline: none;
-  border-color: #666;
+.slider-group {
+    margin-bottom: 24px;
 }
 
-/* range slider and co. */
+.slider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    margin-bottom: 10px;
+}
+
+.slider-header label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.slider-header input {
+    width: 90px;
+    height: 38px;
+
+    border: 1px solid #d7dde5;
+    border-radius: 8px;
+
+    text-align: center;
+    font-size: 14px;
+    background: white;
+}
+
+.slider-group datalist {
+    margin-left: 2px;
+    margin-right: 2px;
+}
+
 datalist {
-  display: flex;
-  vertical-align: middle;
-  justify-content: space-between;
-  width: 85%; /*280px;*/
-  padding: 0 0px;
-  padding-left:7%;
-  padding-bottom: 10%;
+    display: flex;
+    justify-content: space-between;
+
+    width: 100%;
+    margin-top: 6px;
+
+    padding: 0;
+
+    color: #94a3b8;
+    font-size: 12px;
+    font-weight: 500;
 }
 
 datalist option {
-  /* padding: 0; */
-  width: 0px;
+    width: auto;
+    padding: 0;
 }
 
 input[type="range"] {
-  text-align: center;
-  width: 80%; /*250px;*/
-  margin: 0;
-}
-
-/* For the text and text field before slider */
-.ak-row {
-    display: grid;
-    grid-template-columns: 1fr auto; /* left grows, right fits content */
-    align-items: center;
     width: 100%;
-    max-width: 260px;   /* same as slider */
-    margin: 0 auto;
-    padding-bottom: 2%;
+    margin: 0;
 }
 
-.ak-row span {
-    text-align: left;
+/* for chrome */
+input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #dbe5f5;
 }
 
-.ak-row input {
-    width: 70px;
-    text-align: right;
+input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+
+    width: 20px;
+    height: 20px;
+
+    border-radius: 50%;
+    background: #0052a3;
+
+    margin-top: -7px;
+    cursor: pointer;
+}
+
+/* for firexfox */
+input[type="range"]::-moz-range-track {
+    height: 6px;
+    border-radius: 999px;
+    background: #dbe5f5;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+
+    border: none;
+    border-radius: 50%;
+    background: #0052a3;
+
+    cursor: pointer;
+}
+
+/* for the coordinate system image*/
+.coordinate-wrapper {
+    display: flex;
+    justify-content: center;
+    margin: 25px 0;
+}
+
+.coordinate-wrapper img {
+    width: 180px;
+    max-width: 100%;
 }
 
 /* for the proband data */
-.param-proband {
-    margin-left: auto;
-    display: grid;
-    grid-template-columns: 55% 25%; /* label | input */
-    column-gap: 15%;                  /* BIG space between label & input */
-    row-gap: 6px;
-    align-items: right;
-    padding-top: 20px;
-    padding-bottom: 20px;
-}
 
-.param-proband label {
-    text-align: left;                 /* M1, M2 aligned */
-    font-weight: 500;
+.selected-subject {
+    margin-bottom: 15px;
     font-size: 14px;
+    font-weight: 700;
+    color: #333;
 }
 
-.param-proband input {
-    text-align: right;                 /* numbers aligned right */
+.details-toggle {
     width: 100%;
-    height: 20px;
-    padding: 1px 4px;
+    margin-top: 12px;
+    padding: 10px 14px;
+
+    background: white; 
+    border: 1px solid #dbe4ef;
+    border-radius: 6px;
+
+    color: #003b8e;
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.details-toggle:hover {
+    background: #f5f9ff;
+    border-color: #003b8e;
+}
+
+.hidden-details {
+    display: none;
+    margin-top: 15px;
+}
+
+.hidden-details.open {
+    display: block;
+}
+
+.param-proband {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.param-proband-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.param-proband-label {
     font-size: 14px;
+}
+
+.param-proband-value {
+    background: white;
+    border: 1px solid #dbe4ef;
+    border-radius: 6px;
+    padding: 4px 10px;
+    min-width: 70px;
+    text-align: right;
+    font-family: monospace;
+}
+
+.proband-info-box {
+    width: 100%;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 /* for the m, k, d params*/
-.params {
-    margin-left: auto;
-    display: grid;
-    grid-template-columns: 40% 30%; /* label | input */
-    column-gap: 15%;                  /* BIG space between label & input */
-    row-gap: 6px;
-    align-items: right;
-    padding-top: 40px;
-    padding-bottom: 40px;
+.parameter-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
-.params label {
-    text-align: right;                 /* M1, M2 aligned */
-    font-weight: 500;
-    font-size: 14px;
+.param-section {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 12px;
 }
 
-.params input {
-    text-align: right;                 /* numbers aligned right */
-    width: 100%;
-    height: 20px;
-    padding: 1px 4px;
+.param-section h4 {
+    margin: 0 0 10px 0;
+    color: #003b8e;
     font-size: 14px;
+    font-weight: 600;
+}
+
+.param-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.param-row:last-child {
+    margin-bottom: 0;
+}
+
+.param-value {
+    background: white;
+    border: 1px solid #dbe4ef;
+    border-radius: 6px;
+    padding: 4px 10px;
+    min-width: 20px;
+    text-align: right;
+    font-family: monospace;
 }
 
 .box {
@@ -303,6 +421,51 @@ input[type="range"] {
     border-radius: 12px;
     padding: 15px;
     margin-bottom: 20px;
+}
+
+.chart-area {
+    display: flex;
+    gap: 20px;
+}
+
+.chart-container {
+    flex: 3;
+    position: relative;
+}
+
+.top-chart-card {
+    width: 800px;
+}
+
+.info-box {
+    width: 100%;
+    max-width: 220px;
+    padding: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: #fafafa;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.info-box h4 {
+    margin-top: 0;
+    font-size: 15px; 
+    color: #003b8e;
+}
+
+.model-info-box {
+    max-width: none;
+}
+
+/* Hide all tab charts by default */
+.top-chart, .mod-chart {
+    display: none !important;
+}
+
+/* Display only the active tab chart */
+.top-chart.active, .mod-chart.active {
+    display: block !important;
 }
 
 .tab-header {
@@ -333,46 +496,6 @@ input[type="range"] {
     border-bottom: 2px solid #003b8e;
 }
 
-.chart-area {
-    display: flex;
-    gap: 20px;
-}
-
-.chart-container {
-    flex: 1;
-    position: relative;
-}
-
-.top-chart-card .chart-container {
-    height: 420px;
-}
-
-.info-box {
-    width: 180px;
-    padding: 16px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
-    font-size: 13px;
-    line-height: 1.5;
-}
-
-.info-box h4 {
-    margin-top: 0;
-    font-size: 15px;
-    color: #003b8e;
-}
-
-/* Hide all tab charts by default */
-.top-chart, .mod-chart {
-    display: none !important;
-}
-
-/* Display only the active tab chart */
-.top-chart.active, .mod-chart.active {
-    display: block !important;
-}
-
 .flex-container {
   display: flex;
   justify-content: center;
@@ -390,72 +513,29 @@ input[type="range"] {
 }
 
 .imag-4mkd {
-  display: flex;
-  flex-direction: column;
-  padding-top: 40px;
-  width: 90%;
-  height: 90%;
+    padding-top: 10px;
+    align-items: center;
+    padding-bottom: 10%;
 }
 
-/* The switch - the box around the slider */
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  transform: rotate(270deg);
+#modelImage {
+    width: 100%;
+    max-width: 320px;
+    height: auto;
 }
 
-/* Hide default HTML checkbox */
-.switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
+/*Compare toggle*/
+.compare-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    font-size: 13px;
+    color: #475569;
+    font-weight: 500;
 }
 
-/* The slider */
-.slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #ccc;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-.slider:before {
-  position: absolute;
-  content: "";
-  height: 26px;
-  width: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
-}
-
-input:checked + .slider {
-  background-color: #2196F3;
-}
-
-input:focus + .slider {
-  box-shadow: 0 0 1px #2196F3;
-}
-
-input:checked + .slider:before {
-  -webkit-transform: translateX(26px);
-  -ms-transform: translateX(26px);
-  transform: translateX(26px);
-}
-
-/* Round sliders */
-.slider.round {
-  border-radius: 34px;
-}
-.slider.round:before {
-  border-radius: 50%;
+.compare-toggle input {
+    width: 16px;
+    height: 16px;
 }

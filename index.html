@@ -36,51 +36,49 @@
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
-                Data Selection    
+                Data Selection -  Interpolated Data
             </div>
-            <div class="w3-center">                                          
-                <div class="w3-right-align"><p><label for="dataMAT">Data Set </label>
-                <select id="dataMAT"></select></p></div>
-                <div class="w3-right-align"><p><label for="anregung">Excitation Direction </label>
-                <select id="anregung">
-                    <option value="translatorischZ">translational z&#8341</option>
-                    <option value="translatorischY">translational y&#8341</option>
-                    <option value="translatorischX">translational x&#8341</option>
-                    <option value="rotatorischZ">rotational z&#8341</option>
-                    <option value="rotatorischY">rotational y&#8341</option>
-                    <option value="rotatorischX">rotational x&#8341</option>
-                </select></p></div>
-            </div>
-            <div>
-                <img src="HAS_ISO10068_transparent.png" alt="Coordinate system for direction of excitation" style="width:70%">
-            </div>
-            <div class="ak-row">
-                <span>Push Force F<sub>p</sub> [N]</span>
-                <input id="valAK" type="text">
-            </div>
-            <input id="andk" type="range" step="0.01" list="AKmarkers" />
-            <datalist id="AKmarkers"></datalist>
-            <div class="ak-row">
-                <span>Grip Force F<sub>g</sub> [N]</span>
-                <input id="valGK" type="text">
-            </div>
-            <input id="greifk" type="range" step="0.01" list="GKmarkers" />
-            <datalist id="GKmarkers"></datalist>
-            <div class="flex-container">
-                <div>
-                    <p>2. line (orange)</p>
-                    <label class="switch">
-                        <input type="checkbox" id="compareData">
-                        <span class="slider round"></span>
-                    </label>
-                    <p>1. line (blue)</p>
+            <div class="selection-group">                                          
+                <div class="control-group">
+                    <label for="dataMAT">Data Set</label>
+                    <select id="dataMAT"></select>
                 </div>
+                <div class="control-group">
+                    <label for="anregung">Excitation Direction</label>
+                    <select id="anregung">
+                        <option value="translatorischZ">translational z&#8341</option>
+                        <option value="translatorischY">translational y&#8341</option>
+                        <option value="translatorischX">translational x&#8341</option>
+                        <option value="rotatorischZ">rotational z&#8341</option>
+                        <option value="rotatorischY">rotational y&#8341</option>
+                        <option value="rotatorischX">rotational x&#8341</option>
+                    </select>
+                </div>
+            </div>
+            <div class="coordinate-wrapper">
+                <img src="HAS_ISO10068_transparent.png"
+                    alt="Coordinate system">
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Push Force F<sub>p</sub> [N]</label>
+                    <input id="valAK" type="text">
+                </div>
+                <input id="andk" type="range" step="0.01" list="AKmarkers" />
+                <datalist id="AKmarkers"></datalist>
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Grip Force F<sub>g</sub> [N]</label>
+                    <input id="valGK" type="text">
+                </div>
+                <input id="greifk" type="range" step="0.01" list="GKmarkers" />
+                <datalist id="GKmarkers"></datalist>
             </div>
         </div>
         </div>
         <div class="panel center-panel">
-            <div class="chart-card">
-                <div class="top-chart-card">
+            <div class="chart-card top-chart-card">
                 <div class="tab-header">
                     <button id="btnMI" class="active"
                         onclick="switchChart('top','chartMI',this)">
@@ -122,7 +120,12 @@
                         </p>
                     </div>
                 </div>
-                </div>
+            <div class="chart-controls">
+                <label class="compare-toggle">
+                    <input type="checkbox" id="compareData">
+                    <span>Compare second curve</span>
+                </label>
+            </div>
             </div>
         </div>
         <div class="panel right-panel">
@@ -130,73 +133,125 @@
             <div class="card-title">
                 Anthropometric Data
             </div>
+            <div class="proband-info-box">
+            <div class="selected-subject" id="selectedSubject">
+                Subject Number 1
+            </div>
             <div class="param-proband">
-                <label for="gender">Sex:</label><input id="gender" readonly>
-                <label for="handWeight">Hand Weight [g]:</label><input id="handWeight" readonly>
-                <label for="bodyWeight">Body Weight [kg]:</label><input id="bodyWeight" readonly>
-                <label for="bodyHeight">Body Height [mm]:</label><input id="bodyHeight" readonly>
-                <label for="FrontReach">Front Reach [mm]:</label><input id="FrontReach" readonly>
-                <label for="ElbowToWristLength">Elbow to Wrist Length [mm]:</label><input id="ElbowToWristLength" readonly>
-                <label for="thumbLength">Thumb Length [mm]:</label><input id="thumbLength" readonly>
-                <label for="handLength">Hand Length [mm]:</label><input id="handLength" readonly>
-                <label for="palmLength">Palm Length [mm]:</label><input id="palmLength" readonly>
-                <label for="palmWidth">Palm Width [mm]:</label><input id="palmWidth" readonly>
-                <label for="forearmCircumference">Forearm Circumference [mm]:</label><input id="forearmCircumference" readonly>
-                <label for="armCircumference">Arm Circumference [mm]:</label><input id="armCircumference" readonly>
+                <div class="param-proband-row">
+                    <span>Sex</span>
+                    <span id="gender" class="param-value"></span>
+                </div>
+                <div class="param-proband-row">
+                    <span>Hand Weight [g]</span>
+                    <span id="handWeight" class="param-value"></span>
+                </div>
+                <div class="param-proband-row">
+                    <span>Body Weight [kg]</span>
+                    <span id="bodyWeight" class="param-value"></span>
+                </div>
+                <div class="param-proband-row">
+                    <span>Body Height [mm]</span>
+                    <span id="bodyHeight" class="param-value"></span>
+                </div>
+                <div class="param-proband-row">
+                    <span>Front Reach [mm]</span>
+                    <span id="FrontReach" class="param-value"></span>
+                </div>
+            </div>
+            </div>
+            <button class="details-toggle" onclick="toggleAnthroDetails()">
+                Show additional parameters ▼
+            </button>
+            <div id="anthroDetails" class="hidden-details">
+            <div class="proband-info-box">
+                <div class="param-proband">
+                    <div class="param-proband-row">
+                        <span>Elbow to Wrist Length [mm]</span>
+                        <span id="ElbowToWristLength" class="param-value"></span>
+                    </div>
+                    <div class="param-proband-row">
+                        <span>Thumb Length [mm]</span>
+                        <span id="thumbLength" class="param-value"></span>
+                    </div>
+                    <div class="param-proband-row">
+                        <span>Hand Length [mm]</span>
+                        <span id="handLength" class="param-value"></span>
+                    </div>
+                    <div class="param-proband-row">
+                        <span>Palm Length [mm]</span>
+                        <span id="palmLength" class="param-value"></span>
+                    </div>
+                    <div class="param-proband-row">
+                        <span>Palm Width [mm]</span>
+                        <span id="palmWidth" class="param-value"></span>
+                    </div>
+                    <div class="param-proband-row">
+                        <span>Forearm Circumference [mm]</span>
+                        <span id="forearmCircumference" class="param-value"></span>
+                    </div>
+                    <div class="param-proband-row">
+                        <span>Arm Circumference [mm]</span>
+                        <span id="armCircumference" class="param-value"></span>
+                    </div>
+                </div>
+            </div>
+            </div>
             </div>
         </div>
         </div>
     </div>
     <div class="info-row">
-        <div><i class="icon-class"></i>Platzhalter</div>
+        <div><i class="icon-class"></i></div>
     </div>
     <div class="dashboard">
-        <div class="left-panel">
+        <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
-                Data Selection    
+                Data Selection - Modell Data
             </div>
-            <div class="w3-center">                                          
-                <div class="w3-right-align"><p><label for="dataMAT_Mod">Data Set </label>
-                <select id="dataMAT_Mod">
-                    <option value="allProbands">All Subjects</option>
-                </select></p></div>
-                <div class="w3-right-align"><p><label for="anregung_Mod">Excitation Direction </label>
-                <select id="anregung_Mod">
-                    <option value="translatorischZ">translational z&#8341</option>
-                    <option value="translatorischY">translational y&#8341</option>
-                    <option value="translatorischX">translational x&#8341</option>
-                    <option value="rotatorischZ">rotational z&#8341</option>
-                    <option value="rotatorischY">rotational y&#8341</option>
-                    <option value="rotatorischX">rotational x&#8341</option>
-                </select></p></div>
-            </div>
-            <div class="ak-row">
-                <span>Push Force F<sub>p</sub> [N]</span>
-                <input id="valAK_Mod" type="text">
-            </div>
-            <input id="andk_Mod" type="range" step="0.01" list="AKmarkers_Mod" />
-            <datalist id="AKmarkers_Mod"></datalist>
-            <div class="ak-row">
-                <span>Grip Force F<sub>g</sub> [N]</span>
-                <input id="valGK_Mod" type="text">
-            </div>
-            <input id="greifk_Mod" type="range" step="0.01" list="GKmarkers_Mod" />
-            <datalist id="GKmarkers_Mod"></datalist>
-            <div class="flex-container">
-                <div>
-                    <p>2. line (orange)</p>
-                    <label class="switch">
-                        <input type="checkbox" id="compareData_Mod">
-                        <span class="slider round"></span>
-                    </label>
-                    <p>1. line (blue)</p>
+            <div class="selection-group">                                          
+                <div class="control-group">
+                    <label for="dataMAT_Mod">Data Set</label>
+                    <select id="dataMAT_Mod">
+                        <option value="allProbands">All Subjects</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="anregung_Mod">Excitation Direction</label>
+                    <select id="anregung_Mod">
+                        <option value="translatorischZ">translational z&#8341</option>
+                        <option value="translatorischY">translational y&#8341</option>
+                        <option value="translatorischX">translational x&#8341</option>
+                        <option value="rotatorischZ">rotational z&#8341</option>
+                        <option value="rotatorischY">rotational y&#8341</option>
+                        <option value="rotatorischX">rotational x&#8341</option>
+                    </select>
                 </div>
             </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Push Force F<sub>p</sub> [N]</label>
+                    <input id="valAK_Mod" type="text">
+                </div>
+                <input id="andk_Mod" type="range" step="0.01" list="AKmarkers_Mod" />
+                <datalist id="AKmarkers_Mod"></datalist>
+            </div>
+            <div class="slider-group">
+                <div class="slider-header">
+                    <label>Grip Force F<sub>g</sub> [N]</label>
+                    <input id="valGK_Mod" type="text">
+                </div>
+                <input id="greifk_Mod" type="range" step="0.01" list="GKmarkers_Mod" />
+                <datalist id="GKmarkers_Mod"></datalist>
+            </div>
         </div>
         </div>
-        <div class="center-panel">
+        <div class="panel center-panel">
             <div class="chart-card">
+            <div class="card-title">
+                Modell Results
+            </div>
                 <div class="tab-header">
                     <button id="btnMI_Mod" class="active"
                         onclick="switchChart('mod','chartMI_Mod',this)">
@@ -213,30 +268,79 @@
                 <div>
                     <canvas id="chartPhase_Mod" class="mod-chart"></canvas>
                 </div>
+            <div class="chart-controls">
+                <label class="compare-toggle">
+                    <input type="checkbox" id="compareData_Mod">
+                    <span>Compare second curve</span>
+                </label>
             </div>
-        </div>
-        <div class="right-panel">
-        <div class="box">
+            </div>
+            <div class="box">
             <div class="card-title">
                 Modell Parameters    
             </div>
-            <div class="params">
-                <label for="m1">M1</label><input id="m1" readonly>
-                <label for="m2">M2</label><input id="m2" readonly>
-                <label for="m3">M3</label><input id="m3" readonly>
-                <label for="m4">M4</label><input id="m4" readonly>
-
-                <label for="d1">D1</label><input id="d1" readonly>
-                <label for="d2">D2</label><input id="d2" readonly>
-                <label for="d3">D3</label><input id="d3" readonly>
-                <label for="d4">D4</label><input id="d4" readonly>
-
-                <label for="k1">K1</label><input id="k1" readonly>
-                <label for="k2">K2</label><input id="k2" readonly>
-                <label for="k3">K3</label><input id="k3" readonly>
-                <label for="k4">K4</label><input id="k4" readonly>
+                <div class="parameter-groups">
+                    <div class="param-section">
+                        <h4>Masses [kg]</h4>
+                        <div class="param-row">
+                            <span>M1</span>
+                            <span id="m1" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>M2</span>
+                            <span id="m2" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>M3</span>
+                            <span id="m3" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>M4</span>
+                            <span id="m4" class="param-value"></span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <h4>Damping [Ns/m]</h4>
+                        <div class="param-row">
+                            <span>D1</span>
+                            <span id="d1" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>D2</span>
+                            <span id="d2" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>D3</span>
+                            <span id="d3" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>D4</span>
+                            <span id="d4" class="param-value"></span>
+                        </div>
+                    </div>
+                    <div class="param-section">
+                        <h4>Stiffness [N/m]</h4>
+                        <div class="param-row">
+                            <span>K1</span>
+                            <span id="k1" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>K2</span>
+                            <span id="k2" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>K3</span>
+                            <span id="k3" class="param-value"></span>
+                        </div>
+                        <div class="param-row">
+                            <span>K4</span>
+                            <span id="k4" class="param-value"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+        <div class="panel right-panel">
         <div class="box">
             <div class="card-title">
                 4-mass oscillator modell    
@@ -245,6 +349,19 @@
                     <img id="modelImage"
                         src="Viermassenschwinger.png"
                         alt="Model visualization">
+            </div>
+            <div class="info-box model-info-box">
+                <h4>What do the parameters mean?</h4>
+                <p>
+                    The hand–arm system is represented as a
+                    four-mass oscillator model.
+                </p>
+                <p>
+                    The masses, damping coefficients and stiffness
+                    values describe the dynamic behaviour of the
+                    system for the selected excitation direction
+                    and force combination.
+                </p>
             </div>
         </div>
         </div>
@@ -433,6 +550,22 @@
             ];
         }
 
+        function toggleAnthroDetails() {
+
+            const details =
+                document.getElementById("anthroDetails");
+
+            const button =
+                document.querySelector(".details-toggle");
+
+            details.classList.toggle("open");
+
+            button.textContent =
+                details.classList.contains("open")
+                    ? "Hide additional parameters ▲"
+                    : "Show additional parameter ▼";
+        }
+
         async function loadModelMatrices() {
             const dirKey = document.getElementById("anregung_Mod").value;
             const def = MODEL_DEFS[dirKey];
@@ -513,6 +646,14 @@
             /* mechImpe_Mod = (chosenProb_Mod === "ALL")
                 ? newResMat_Mod
                 : newResMat_Mod.filter(r => r.SubjectNumber === Number(chosenProb_Mod)); */
+
+            const subjectLabel =
+                document.getElementById("selectedSubject");
+
+            subjectLabel.textContent =
+                chosenProb === "ALL"
+                    ? "All Subjects"
+                    : `Subject Number ${chosenProb}`;
 
             // Compute ranges for selected probands
             const ranges = computeForceRangesForProband(mechImpe);
@@ -1424,11 +1565,10 @@
                 const el = document.getElementById(key);
                 if (!el) return;
 
-                if (typeof value === "number") {
-                    el.value = value.toFixed(3);
-                } else {
-                    el.value = value;
-                }
+                el.textContent =
+                    typeof value === "number"
+                        ? value.toFixed(3)
+                        : value;
             });
         }
 
@@ -1448,7 +1588,7 @@
 
         function writeVector(prefix, vec) {
             vec.forEach((v, i) => {
-                document.getElementById(`${prefix}${i + 1}`).value =
+                document.getElementById(`${prefix}${i + 1}`).textContent =
                     Number(v).toFixed(3);
             });
         }
