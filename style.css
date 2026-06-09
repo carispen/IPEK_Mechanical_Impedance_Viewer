@@ -5,6 +5,12 @@ body {
     color: #333;
 }
 
+:root {
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 1.5rem;
+}
+
 .site-header {
     background: linear-gradient(90deg,#003b82,#0052a3);
 
@@ -14,7 +20,9 @@ body {
     justify-content: space-between;
     align-items: center;
 
-    padding: 20px 40px;
+    padding:
+        clamp(1rem, 2vw, 1.25rem)
+        clamp(1rem, 4vw, 2.5rem);
 
     border-radius: 0;
     border: none;
@@ -35,7 +43,7 @@ body {
 
 .site-header h1 {
     color: white;
-    font-size: 2rem;
+    font-size: clamp(1.5rem, 2vw, 2rem);
     margin-bottom: 5px;
 }
 
@@ -46,9 +54,8 @@ body {
 .wizard {
     display: flex;
     justify-content: center;
-    gap: 60px;
-
-    padding: 20px;
+    gap: clamp(1rem, 5vw, 4rem);
+    padding: clamp(0.8rem, 2vw, 1.2rem);
     background: white;
     border-bottom: 1px solid #e2e6eb;
 }
@@ -65,16 +72,31 @@ body {
 
 .dashboard {
     display: grid;
-    grid-template-columns: 320px 1fr 320px;
-    gap: 20px;
-    padding: 20px;
+    grid-template-columns:
+        clamp(220px, 18vw, 280px)
+        1fr
+        clamp(220px, 18vw, 280px);
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .dashboard-row {
     display: grid;
-    grid-template-columns: 1.1fr 2fr 1.3fr; /* Aligns left panels, large centers, and readable parameter cards */
-    gap: 24px;
-    padding: 0 40px 24px 40px;
+
+    grid-template-columns:
+        minmax(18rem, 1fr)
+        minmax(50rem, 3fr)
+        minmax(18rem, 1.2fr);
+
+    gap: clamp(1rem, 2vw, 1.5rem);
+    row-gap: clamp(0.75rem, 1.5vw, 1rem);
+
+    padding:
+        0
+        clamp(1rem, 3vw, 2.5rem)
+        clamp(1rem, 2vw, 1.5rem)
+        clamp(1rem, 3vw, 2.5rem);
+
     background: #f8fafc;
 }
 
@@ -82,41 +104,57 @@ body {
 .info-row {
     display: flex;
     justify-content: space-between;
-    padding: 20px 40px;
+    align-items: center;
+
+    /* fluid padding instead of fixed px */
+    padding: clamp(0.75rem, 1.5vw, 1.5rem)
+             clamp(1rem, 4vw, 2.5rem);
+
     background: #ffffff;
+
     border-top: 1px solid #e2e8f0;
     border-bottom: 1px solid #e2e8f0;
-    margin-bottom: 24px;
-    gap: 20px;
+
+    /* replaces fixed spacing with scalable rhythm */
+    margin-bottom: 0;
+
+    gap: clamp(0.75rem, 2vw, 1.25rem);
+
+    flex-wrap: wrap; /* prevents overflow on smaller widths */
 }
+
 .info-row div {
     display: flex;
     align-items: center;
-    gap: 10px;
-    font-size: 13px;
+
+    gap: clamp(0.4rem, 1vw, 0.75rem);
+
+    font-size: clamp(0.75rem, 0.9vw, 0.9rem);
+
     color: #1e3a8a;
     font-weight: 500;
+
+    white-space: nowrap;
 }
 
-/* Left column */
-.left-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.left-panel,
+.right-panel {
+    gap: clamp(0.75rem, 1.5vw, 1.25rem);
 }
 
 /* Center column */
 .center-panel {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 20px;
+    min-width: 0;
+    gap: clamp(1rem, 2vw, 1.5rem);
 }
 
-/* Right column */
-.right-panel {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+.center-panel-bottom {
+    display: grid;
+    gap: clamp(1rem, 2vw, 1.5rem);
+
+    grid-template-columns:
+        minmax(0, 5fr) minmax(16rem, 1fr);
 }
 
 html, body {
@@ -127,7 +165,6 @@ html, body {
 .page-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;   /* instead of height */
 }
 
 /* Top + bottom sections */
@@ -189,8 +226,8 @@ html, body {
 }
 
 .slider-header input {
-    width: 90px;
-    height: 38px;
+    width: clamp(4.5rem, 8vw, 6rem);
+    height: clamp(2.2rem, 4vw, 2.5rem);
 
     border: 1px solid #d7dde5;
     border-radius: 8px;
@@ -227,16 +264,25 @@ datalist option {
 input[type="range"] {
     width: 100%;
     margin: 0;
+
+    /* IMPORTANT: normalize Chromium/Opera rendering */
+    -webkit-appearance: none;
+    appearance: none;
+
+    background: transparent;
+    outline: none;
 }
 
-/* for chrome */
+/* ===== TRACK (Chrome / Opera / Edge Chromium) ===== */
 input[type="range"]::-webkit-slider-runnable-track {
     height: 6px;
     border-radius: 999px;
     background: #dbe5f5;
 }
 
+/* ===== THUMB (Chrome / Opera / Edge Chromium) ===== */
 input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
     appearance: none;
 
     width: 20px;
@@ -245,11 +291,36 @@ input[type="range"]::-webkit-slider-thumb {
     border-radius: 50%;
     background: #0052a3;
 
-    margin-top: -7px;
+    border: none;
+
     cursor: pointer;
+
+    /* key fix for Chrome/Opera alignment consistency */
+    margin-top: -7px;
+
+    /* improves rendering consistency in Opera GX */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
-/* for firexfox */
+/* ===== HOVER / ACTIVE consistency (Opera sometimes differs here) ===== */
+input[type="range"]:hover::-webkit-slider-thumb {
+    background: #00478f;
+}
+
+input[type="range"]:active::-webkit-slider-thumb {
+    transform: scale(1.05);
+}
+
+/* ===== FOCUS (Opera focus ring differs from Chrome) ===== */
+input[type="range"]:focus {
+    outline: none;
+}
+
+input[type="range"]:focus::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(0, 82, 163, 0.2);
+}
+
+/* ===== FIREFOX (keep yours, just aligned visually) ===== */
 input[type="range"]::-moz-range-track {
     height: 6px;
     border-radius: 999px;
@@ -267,6 +338,11 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer;
 }
 
+/* Firefox focus */
+input[type="range"]::-moz-focus-outer {
+    border: 0;
+}
+
 /* for the coordinate system image*/
 .coordinate-wrapper {
     display: flex;
@@ -275,30 +351,35 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .coordinate-wrapper img {
-    width: 180px;
+    width: clamp(8rem, 18vw, 14rem);
+    height: auto;
     max-width: 100%;
 }
 
 /* for the proband data */
 
 .selected-subject {
-    margin-bottom: 15px;
-    font-size: 14px;
+    margin-bottom: clamp(0.6rem, 1vw, 1rem);
+    font-size: clamp(0.8rem, 1vw, 0.9rem);
     font-weight: 700;
-    color: #333;
+    color: #003b8e;
 }
 
 .details-toggle {
     width: 100%;
-    margin-top: 12px;
-    padding: 10px 14px;
 
-    background: white; 
+    margin-top: clamp(0.5rem, 1vw, 0.8rem);
+
+    padding:
+        clamp(0.5rem, 0.8vw, 0.65rem)
+        clamp(0.75rem, 1vw, 0.9rem);
+
+    background: white;
     border: 1px solid #dbe4ef;
-    border-radius: 6px;
+    border-radius: clamp(0.3rem, 0.5vw, 0.4rem);
 
     color: #003b8e;
-    font-size: 13px;
+    font-size: clamp(0.75rem, 0.9vw, 0.85rem);
     font-weight: 600;
 
     cursor: pointer;
@@ -312,7 +393,7 @@ input[type="range"]::-moz-range-thumb {
 
 .hidden-details {
     display: none;
-    margin-top: 15px;
+    margin-top: clamp(0.6rem, 1vw, 1rem);
 }
 
 .hidden-details.open {
@@ -322,7 +403,7 @@ input[type="range"]::-moz-range-thumb {
 .param-proband {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: clamp(0.3rem, 0.7vw, 0.5rem);
 }
 
 .param-proband-row {
@@ -331,27 +412,39 @@ input[type="range"]::-moz-range-thumb {
     align-items: center;
 }
 
-.param-proband-label {
-    font-size: 14px;
+.param-proband-label,
+.param-row span {
+    font-size: clamp(0.8rem, 0.9vw, 0.9rem);
 }
 
 .param-proband-value {
     background: white;
     border: 1px solid #dbe4ef;
-    border-radius: 6px;
-    padding: 4px 10px;
-    min-width: 70px;
+
+    border-radius: clamp(0.3rem, 0.5vw, 0.4rem);
+
+    padding:
+        clamp(0.15rem, 0.4vw, 0.25rem)
+        clamp(0.4rem, 0.8vw, 0.65rem);
+
+    min-width: clamp(3.5rem, 5vw, 4.5rem);
+
     text-align: right;
     font-family: monospace;
+    font-size: clamp(0.75rem, 0.85vw, 0.85rem);
 }
 
 .proband-info-box {
     width: 100%;
-    padding: 16px;
+
+    padding: clamp(0.8rem, 1.2vw, 1rem);
+
     border: 1px solid #ddd;
-    border-radius: 8px;
-    background: #fafafa;
-    font-size: 13px;
+    border-radius: clamp(0.4rem, 0.6vw, 0.5rem);
+
+    background: #f8fafc;
+
+    font-size: clamp(0.75rem, 0.9vw, 0.85rem);
     line-height: 1.5;
 }
 
@@ -359,20 +452,20 @@ input[type="range"]::-moz-range-thumb {
 .parameter-groups {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.5rem;
 }
 
 .param-section {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
 }
 
 .param-section h4 {
-    margin: 0 0 10px 0;
+    margin: 0 0 0.4rem 0;
     color: #003b8e;
-    font-size: 14px;
+    font-size: clamp(0.8rem, 1vw, 0.9rem);
     font-weight: 600;
 }
 
@@ -380,7 +473,7 @@ input[type="range"]::-moz-range-thumb {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    margin-bottom: 0.25rem;
 }
 
 .param-row:last-child {
@@ -390,25 +483,29 @@ input[type="range"]::-moz-range-thumb {
 .param-value {
     background: white;
     border: 1px solid #dbe4ef;
-    border-radius: 6px;
-    padding: 4px 10px;
-    min-width: 20px;
+    border-radius: 4px;
+
+    padding: 2px 6px;
+
+    min-width: 3.5rem;
+
     text-align: right;
     font-family: monospace;
+    font-size: 0.8rem;
 }
 
 .box {
     background: white;
     border: 1px solid #dfe5ec;
     border-radius: 12px;
-    padding: 20px;
+    padding: clamp(1rem, 2vw, 1.25rem);
     box-shadow:
       0 1px 2px rgba(0,0,0,.05);
     height: 100%;
 }
 
 .card-title {
-    font-size: 15px;
+    font-size: clamp(0.9rem, 1vw, 1rem);
     font-weight: 600;
     margin-bottom: 15px;
     border-bottom: 1px solid #eceff4;
@@ -419,31 +516,37 @@ input[type="range"]::-moz-range-thumb {
     background: white;
     border: 1px solid #dfe5ec;
     border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 20px;
+    min-width: 0;
+    padding: clamp(0.8rem, 2vw, 1rem);
 }
 
 .chart-area {
     display: flex;
-    gap: 20px;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: clamp(0.75rem, 2vw, 1.25rem);
+    align-items: stretch;
 }
 
 .chart-container {
-    flex: 3;
+    flex: 1 1 65%;
+    min-width: 30rem;
     position: relative;
-}
-
-.top-chart-card {
-    width: 800px;
+    aspect-ratio: 16 / 10;
 }
 
 .info-box {
-    width: 100%;
-    max-width: 220px;
+    flex: 1 1 18rem; 
+    width: auto;
+
+    max-width: 22rem;
     padding: 16px;
+
     border: 1px solid #ddd;
     border-radius: 8px;
     background: #fafafa;
+
     font-size: 13px;
     line-height: 1.5;
 }
@@ -454,13 +557,31 @@ input[type="range"]::-moz-range-thumb {
     color: #003b8e;
 }
 
+.chart-container-mod {
+    width: 100%;
+    min-width: 0; 
+    position: relative;
+    aspect-ratio: 2.2 / 1;
+}
+
 .model-info-box {
-    max-width: none;
+    flex: 1.2 1 18rem;
+    max-width: 26rem;
+}
+
+.param-row {
+    display: flex;
+    justify-content: space-between;
+
+    gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 /* Hide all tab charts by default */
 .top-chart, .mod-chart {
     display: none !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 
 /* Display only the active tab chart */
@@ -513,14 +634,15 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .imag-4mkd {
-    padding-top: 10px;
-    align-items: center;
-    padding-bottom: 10%;
+    display: flex;
+    justify-content: left;
+    padding-bottom: 5%;
 }
 
 #modelImage {
     width: 100%;
-    max-width: 320px;
+    max-width: 22rem;
+    min-width: 8rem;
     height: auto;
 }
 
@@ -529,7 +651,7 @@ input[type="range"]::-moz-range-thumb {
     display: flex;
     align-items: center;
     gap: 8px;
-
+    padding-top: 2%;
     font-size: 13px;
     color: #475569;
     font-weight: 500;
@@ -538,4 +660,42 @@ input[type="range"]::-moz-range-thumb {
 .compare-toggle input {
     width: 16px;
     height: 16px;
+}
+
+@media (max-width: 1500px) {
+
+    .dashboard {
+        grid-template-columns:
+            240px
+            1fr
+            240px;
+    }
+}
+
+/* tablet layout */
+@media (max-width: 1200px) {
+
+    .dashboard {
+        grid-template-columns:
+            220px
+            1fr;
+    }
+
+    .right-panel {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 1200px) {
+    .center-panel-bottom {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* mobile layout */
+@media (max-width: 900px) {
+
+    .dashboard {
+        grid-template-columns: 1fr;
+    }
 }

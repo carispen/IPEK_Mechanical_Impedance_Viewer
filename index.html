@@ -77,8 +77,8 @@
             </div>
         </div>
         </div>
-        <div class="panel center-panel">
-            <div class="chart-card top-chart-card">
+        <div class="center-panel">
+            <div class="chart-card">
                 <div class="tab-header">
                     <button id="btnMI" class="active"
                         onclick="switchChart('top','chartMI',this)">
@@ -95,14 +95,9 @@
                 </div>
                 <div class="chart-area">
                     <div class="chart-container">
-                        <canvas id="chartMI"
-                                class="chart-panel top-chart"></canvas>
-
-                        <canvas id="chartPhase"
-                                class="chart-panel top-chart"></canvas>
-
-                        <canvas id="chartVPA"
-                                class="chart-panel top-chart"></canvas>
+                        <canvas id="chartMI" class="chart-panel top-chart"></canvas>
+                        <canvas id="chartPhase" class="chart-panel top-chart"></canvas>
+                        <canvas id="chartVPA" class="chart-panel top-chart"></canvas>
                     </div>
                     <div class="info-box">
                         <h4>What does this plot show?</h4>
@@ -247,7 +242,7 @@
             </div>
         </div>
         </div>
-        <div class="panel center-panel">
+        <div class="center-panel center-panel-bottom">
             <div class="chart-card">
             <div class="card-title">
                 Modell Results
@@ -262,11 +257,9 @@
                         Phase Angle of MI
                     </button>
                 </div>
-                <div>
-                    <canvas id="chartMI_Mod" class="mod-chart"></canvas>
-                </div>
-                <div>
-                    <canvas id="chartPhase_Mod" class="mod-chart"></canvas>
+                <div class="chart-container-mod">
+                        <canvas id="chartMI_Mod" class="mod-chart"></canvas>
+                        <canvas id="chartPhase_Mod" class="mod-chart"></canvas>
                 </div>
             <div class="chart-controls">
                 <label class="compare-toggle">
@@ -282,58 +275,58 @@
                 <div class="parameter-groups">
                     <div class="param-section">
                         <h4>Masses [kg]</h4>
-                        <div class="param-row">
-                            <span>M1</span>
+                        <div class="param-row span">
+                            <span>m<sub>1</sub></span>
                             <span id="m1" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>M2</span>
+                            <span>m<sub>2</sub></span>
                             <span id="m2" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>M3</span>
+                            <span>m<sub>3</sub></span>
                             <span id="m3" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>M4</span>
+                            <span>m<sub>4</sub></span>
                             <span id="m4" class="param-value"></span>
                         </div>
                     </div>
                     <div class="param-section">
                         <h4>Damping [Ns/m]</h4>
                         <div class="param-row">
-                            <span>D1</span>
+                            <span>d<sub>1</sub></span>
                             <span id="d1" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>D2</span>
+                            <span>d<sub>2</sub></span>
                             <span id="d2" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>D3</span>
+                            <span>d<sub>3</sub></span>
                             <span id="d3" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>D4</span>
+                            <span>d<sub>4</sub></span>
                             <span id="d4" class="param-value"></span>
                         </div>
                     </div>
                     <div class="param-section">
                         <h4>Stiffness [N/m]</h4>
                         <div class="param-row">
-                            <span>K1</span>
+                            <span>k<sub>1</sub></span>
                             <span id="k1" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>K2</span>
+                            <span>k<sub>2</sub></span>
                             <span id="k2" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>K3</span>
+                            <span>k<sub>3</sub></span>
                             <span id="k3" class="param-value"></span>
                         </div>
                         <div class="param-row">
-                            <span>K4</span>
+                            <span>k<sub>4</sub></span>
                             <span id="k4" class="param-value"></span>
                         </div>
                     </div>
@@ -867,7 +860,9 @@
                 await loadDirection();
                 populateProbandDropdown(newResMat, "dataMAT");
                 selectProband();  // Recalculates ranges for new direction
-
+                DOM.compare.checked = false;
+                activeLine = 0;
+                showSecondLegend = false;
                 isLoading = false;
                 updateUI();
                 updateAllCharts();
@@ -882,7 +877,9 @@
                 //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
                 selectProband();
                 updateModelImage();
-
+                DOM.compareMod.checked = false;
+                activeLine_Mod = 0;
+                showSecondLegend_Mod = false;
                 isLoading = false;
                 updateUI();
                 updateAllCharts();
@@ -1232,6 +1229,12 @@
                 Fg: initFg
             };
 
+            const subtitleText = isMod
+                ? `${document.getElementById("anregung_Mod").selectedOptions[0].text}
+                All Subjects`
+                : `${document.getElementById("anregung").selectedOptions[0].text}
+                ${document.getElementById("dataMAT").selectedOptions[0].text}`;
+
             if (chartRef) {
                 //chartRef.options.scales.y.max = finalMaxValue;
                 chartRef.data.labels = liveData.x;
@@ -1258,6 +1261,7 @@
                     return true;
                 };
 
+                chartRef.options.plugins.subtitle.text = subtitleText;
                 chartRef.update("none");
                 return chartRef;
             }
@@ -1301,6 +1305,13 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
+                        subtitle: {
+                            display: true,
+                            text: subtitleText,
+                            padding: {
+                                bottom: 10
+                            }
+                        },
                         legend: {
                             position: 'top',
                             align: 'end',
