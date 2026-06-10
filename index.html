@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPEK Impedance Viewer</title>
-    <link rel="stylesheet" href="https://www.w3schools.com/w3css/3/w3.css">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.min.js"></script>
@@ -21,8 +20,8 @@
             </p>
         </div>
         <div class="header-right">
-            <img src="logo_ipek.jpg" alt="IPEK Logo">
-            <img src="logo_kit.jpg" alt="KIT Logo">
+            <img src="./logo_ipek.jpg" alt="IPEK Logo">
+            <img src="./logo_kit.jpg" alt="KIT Logo">
         </div>
     </header>
     <div class="wizard">
@@ -31,12 +30,64 @@
         <div class="step">3 Model Data</div>
         <div class="step">4 Parameters</div>
     </div>
-    <div class="page-container">
+    <div class="intro-section">
+        <div class="box">
+            <div class="card-title">
+                Introduction and Terminology
+            </div>
+            <p>
+                This application visualizes measured and model-based mechanical
+                impedance data of the hand–arm system under different grip and
+                push force conditions.
+            </p>
+            <table class="term-table">
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Mechanical Impedance (MI)</strong></td>
+                        <td>
+                            Frequency-dependent resistance of the hand–arm system
+                            to vibration excitation
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Grip Force / Push Force</strong></td>
+                        <td>
+                            Forces used by the subject to hold and push against the
+                            handle
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Model Parameters</strong></td>
+                        <td>
+                            Parameters of the four-mass oscillator model describing
+                            the dynamic behaviour of the hand–arm system
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <h2 class="section-heading">
+        Measured Data
+    </h2>
+    <section class="data-section">
     <div class="dashboard">
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
                 Data Selection -  Interpolated Data
+                <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        In this section subjects from the proband study and excitation direction can be selected and the force constraints set.
+                    </span>
+                </span>
             </div>
             <div class="selection-group">                                          
                 <div class="control-group">
@@ -79,6 +130,15 @@
         </div>
         <div class="center-panel">
             <div class="chart-card">
+            <div class="card-title">
+                Results from subject study
+                <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        This section shows experimentally measured impedance data for selected subjects and force settings. To compare a second curve press the button beneath the chart.
+                    </span>
+                </span>
+            </div>
                 <div class="tab-header">
                     <button id="btnMI" class="active"
                         onclick="switchChart('top','chartMI',this)">
@@ -127,6 +187,12 @@
         <div class="box">
             <div class="card-title">
                 Anthropometric Data
+                <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        All the necessary proband data is listed here. For additional parameters press the button.
+                    </span>
+                </span>
             </div>
             <div class="proband-info-box">
             <div class="selected-subject" id="selectedSubject">
@@ -195,15 +261,22 @@
             </div>
         </div>
         </div>
-    </div>
-    <div class="info-row">
-        <div><i class="icon-class"></i></div>
-    </div>
+    </section>
+    <h2 class="section-heading">
+        Model-Based Data
+    </h2>
+    <section class="data-section">
     <div class="dashboard">
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
-                Data Selection - Modell Data
+                Data Selection - Model Data
+                <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        In this section the excitation direction can be selected and the force constraints set.
+                    </span>
+                </span>
             </div>
             <div class="selection-group">                                          
                 <div class="control-group">
@@ -245,7 +318,13 @@
         <div class="center-panel center-panel-bottom">
             <div class="chart-card">
             <div class="card-title">
-                Modell Results
+                Results from Hand-Arm-Model
+                <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        This section shows model-based impedance data for selected subjects and force settings. To compare a second curve press the button beneath the chart.
+                    </span>
+                </span>
             </div>
                 <div class="tab-header">
                     <button id="btnMI_Mod" class="active"
@@ -261,87 +340,32 @@
                         <canvas id="chartMI_Mod" class="mod-chart"></canvas>
                         <canvas id="chartPhase_Mod" class="mod-chart"></canvas>
                 </div>
-            <div class="chart-controls">
-                <label class="compare-toggle">
-                    <input type="checkbox" id="compareData_Mod">
-                    <span>Compare second curve</span>
-                </label>
-            </div>
+                <div class="chart-controls">
+                    <label class="compare-toggle">
+                        <input type="checkbox" id="compareData_Mod">
+                        <span>Compare second curve</span>
+                    </label>
+                </div>
             </div>
             <div class="box">
             <div class="card-title">
-                Modell Parameters    
-            </div>
-                <div class="parameter-groups">
-                    <div class="param-section">
-                        <h4>Masses [kg]</h4>
-                        <div class="param-row span">
-                            <span>m<sub>1</sub></span>
-                            <span id="m1" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>m<sub>2</sub></span>
-                            <span id="m2" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>m<sub>3</sub></span>
-                            <span id="m3" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>m<sub>4</sub></span>
-                            <span id="m4" class="param-value"></span>
-                        </div>
-                    </div>
-                    <div class="param-section">
-                        <h4>Damping [Ns/m]</h4>
-                        <div class="param-row">
-                            <span>d<sub>1</sub></span>
-                            <span id="d1" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>d<sub>2</sub></span>
-                            <span id="d2" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>d<sub>3</sub></span>
-                            <span id="d3" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>d<sub>4</sub></span>
-                            <span id="d4" class="param-value"></span>
-                        </div>
-                    </div>
-                    <div class="param-section">
-                        <h4>Stiffness [N/m]</h4>
-                        <div class="param-row">
-                            <span>k<sub>1</sub></span>
-                            <span id="k1" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>k<sub>2</sub></span>
-                            <span id="k2" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>k<sub>3</sub></span>
-                            <span id="k3" class="param-value"></span>
-                        </div>
-                        <div class="param-row">
-                            <span>k<sub>4</sub></span>
-                            <span id="k4" class="param-value"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="panel right-panel">
-        <div class="box">
-            <div class="card-title">
-                4-mass oscillator modell    
+                Four-mass oscillator model
+                <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        This section contains the structure and components of the model used to compute the data in the "results from hand-arm-model" section.
+                    </span>
+                </span>
             </div>
             <div class="imag-4mkd">
                     <img id="modelImage"
                         src="Viermassenschwinger.png"
                         alt="Model visualization">
+            </div>
+            <div class="imag-4mkd">
+                    <img id="modelImageSym"
+                        src="symbole_transl.png"
+                        alt="Model symbols">
             </div>
             <div class="info-box model-info-box">
                 <h4>What do the parameters mean?</h4>
@@ -356,9 +380,82 @@
                     and force combination.
                 </p>
             </div>
+            </div>
+        </div>
+        <div class="panel right-panel">
+        <div class="box">
+        <div class="card-title">
+            Model Parameters
+            <span class="info-tooltip">
+                    ⓘ
+                    <span class="info-tooltip-text">
+                        All the model parameters are listed here.
+                    </span>
+                </span>
+        </div>
+            <div class="parameter-groups">
+                <div class="param-section">
+                    <h4>Masses [kg]</h4>
+                    <div class="param-row span">
+                        <span>m<sub>1</sub></span>
+                        <span id="m1" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>m<sub>2</sub></span>
+                        <span id="m2" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>m<sub>3</sub></span>
+                        <span id="m3" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>m<sub>4</sub></span>
+                        <span id="m4" class="param-value"></span>
+                    </div>
+                </div>
+                <div class="param-section">
+                    <h4>Damping [Ns/m]</h4>
+                    <div class="param-row">
+                        <span>d<sub>1</sub></span>
+                        <span id="d1" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>d<sub>2</sub></span>
+                        <span id="d2" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>d<sub>3</sub></span>
+                        <span id="d3" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>d<sub>4</sub></span>
+                        <span id="d4" class="param-value"></span>
+                    </div>
+                </div>
+                <div class="param-section">
+                    <h4>Stiffness [N/m]</h4>
+                    <div class="param-row">
+                        <span>k<sub>1</sub></span>
+                        <span id="k1" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>k<sub>2</sub></span>
+                        <span id="k2" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>k<sub>3</sub></span>
+                        <span id="k3" class="param-value"></span>
+                    </div>
+                    <div class="param-row">
+                        <span>k<sub>4</sub></span>
+                        <span id="k4" class="param-value"></span>
+                    </div>
+                </div>
+            </div>
         </div>
         </div>
     </div>
+    </section>
     <script>
         const DOM = {};
         const charts = {
@@ -556,7 +653,7 @@
             button.textContent =
                 details.classList.contains("open")
                     ? "Hide additional parameters ▲"
-                    : "Show additional parameter ▼";
+                    : "Show additional parameters ▼";
         }
 
         async function loadModelMatrices() {
@@ -815,6 +912,8 @@
             } else if (excitation.startsWith("rotatorisch")) {
                 img.src = "Viermassenschwinger_rotat.png";
             }
+
+            const imgSym = document.getElementById("modelImageSym");
         }
 
         async function initializeApp() {
@@ -826,6 +925,11 @@
             updateModelImage();
             updateUI();
             updateAllCharts();
+            scheduleChartUpdate(window.chartMI);
+            scheduleChartUpdate(window.chartPhase);
+            scheduleChartUpdate(window.chartVPA);
+            scheduleChartUpdate(window.chartMI_Mod);
+            scheduleChartUpdate(window.chartPhase_Mod);
         }
 
         function initEventListeners() {
@@ -834,24 +938,44 @@
                 activeLine = e.target.checked ? 1 : 0;
                 showSecondLegend = e.target.checked;
                 updateAllCharts();
+                scheduleChartUpdate(window.chartMI);
+                scheduleChartUpdate(window.chartPhase);
+                scheduleChartUpdate(window.chartVPA);
+                scheduleChartUpdate(window.chartMI_Mod);
+                scheduleChartUpdate(window.chartPhase_Mod);
             };
 
             DOM.compareMod.onchange = e => {
                 activeLine_Mod = e.target.checked ? 1 : 0;
                 showSecondLegend_Mod = e.target.checked;
                 updateAllCharts();
+                scheduleChartUpdate(window.chartMI);
+                scheduleChartUpdate(window.chartPhase);
+                scheduleChartUpdate(window.chartVPA);
+                scheduleChartUpdate(window.chartMI_Mod);
+                scheduleChartUpdate(window.chartPhase_Mod);
             };
 
             DOM.selectData.onchange = async () => {
                 selectProband();
                 updateUI();
                 updateAllCharts();
+                scheduleChartUpdate(window.chartMI);
+                scheduleChartUpdate(window.chartPhase);
+                scheduleChartUpdate(window.chartVPA);
+                scheduleChartUpdate(window.chartMI_Mod);
+                scheduleChartUpdate(window.chartPhase_Mod);
             };
 
             DOM.selectDataMod.onchange = async () => {
                 selectProband();
                 updateUI();
                 updateAllCharts();
+                scheduleChartUpdate(window.chartMI);
+                scheduleChartUpdate(window.chartPhase);
+                scheduleChartUpdate(window.chartVPA);
+                scheduleChartUpdate(window.chartMI_Mod);
+                scheduleChartUpdate(window.chartPhase_Mod);
             };
 
             DOM.selectDir.onchange = async () => {
@@ -866,6 +990,11 @@
                 isLoading = false;
                 updateUI();
                 updateAllCharts();
+                scheduleChartUpdate(window.chartMI);
+                scheduleChartUpdate(window.chartPhase);
+                scheduleChartUpdate(window.chartVPA);
+                scheduleChartUpdate(window.chartMI_Mod);
+                scheduleChartUpdate(window.chartPhase_Mod);
             };
 
             DOM.selectDirMod.onchange = async () => {
@@ -883,11 +1012,40 @@
                 isLoading = false;
                 updateUI();
                 updateAllCharts();
+                scheduleChartUpdate(window.chartMI);
+                scheduleChartUpdate(window.chartPhase);
+                scheduleChartUpdate(window.chartVPA);
+                scheduleChartUpdate(window.chartMI_Mod);
+                scheduleChartUpdate(window.chartPhase_Mod);
             };
         }
 
         // Debounced chart update
         const debouncedChartUpdate = debounce(updateAllCharts, 150);
+
+        function safeResize(chart) {
+            if (!chart?.canvas) return;
+
+            const rect = chart.canvas.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+
+            const width = Math.floor(rect.width);
+            const height = Math.floor(rect.height);
+
+            chart.canvas.style.width = width + "px";
+            chart.canvas.style.height = height + "px";
+
+            chart.resize();
+            chart.update('none');
+        }
+
+        function scheduleChartUpdate(chart) {
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    safeResize(chart);
+                });
+            });
+        }
 
         document.addEventListener("DOMContentLoaded", async () => {
             initDOM();
@@ -897,6 +1055,10 @@
             document.getElementById("btnMI").classList.add("active");
             document.getElementById("chartMI_Mod").classList.add("active");
             document.getElementById("btnMI_Mod").classList.add("active");
+        });
+
+        window.addEventListener('resize', () => {
+            Object.values(window.charts || {}).forEach(scheduleChartUpdate);
         });
                 
         function updateAllCharts() {
@@ -1304,6 +1466,7 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    devicePixelRatio: window.devicePixelRatio,
                     plugins: {
                         subtitle: {
                             display: true,
