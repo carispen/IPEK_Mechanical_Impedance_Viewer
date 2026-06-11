@@ -20,15 +20,27 @@
             </p>
         </div>
         <div class="header-right">
-            <img src="./logo_ipek.jpg" alt="IPEK Logo">
-            <img src="./logo_kit.jpg" alt="KIT Logo">
+            <img src="./logo_ipek.png" alt="IPEK Logo">
+            <img src="./logo_kit.png" alt="KIT Logo">
         </div>
     </header>
     <div class="wizard">
-        <div class="step active">1 Conditions</div>
-        <div class="step">2 Interpolated Data</div>
-        <div class="step">3 Model Data</div>
-        <div class="step">4 Parameters</div>
+        <div class="step active">
+            <span class="step-number">1</span>
+            <span class="step-label">Conditions</span>
+        </div>
+        <div class="step active">
+            <span class="step-number">2</span>
+            <span class="step-label">Interpolated Data</span>
+        </div>
+        <div class="step active">
+            <span class="step-number">3</span>
+            <span class="step-label">Model Data</span>
+        </div>
+        <div class="step active">
+            <span class="step-number">4</span>
+            <span class="step-label">Parameters</span>
+        </div>
     </div>
     <div class="intro-section">
         <div class="box">
@@ -81,10 +93,11 @@
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
+                <span class="card-number">1</span>
                 Data Selection -  Interpolated Data
                 <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         In this section subjects from the proband study and excitation direction can be selected and the force constraints set.
                     </span>
                 </span>
@@ -131,10 +144,11 @@
         <div class="center-panel">
             <div class="chart-card">
             <div class="card-title">
+                <span class="card-number">2</span>
                 Results from subject study
                 <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         This section shows experimentally measured impedance data for selected subjects and force settings. To compare a second curve press the button beneath the chart.
                     </span>
                 </span>
@@ -145,19 +159,26 @@
                         Magnitude of MI
                     </button>
                     <button
-                        onclick="switchChart('top','chartPhase',this)">
-                        Phase Angle of MI
-                    </button>
-                    <button
                         onclick="switchChart('top','chartVPA',this)">
                         Vibration Power Absorption
                     </button>
                 </div>
                 <div class="chart-area">
                     <div class="chart-container">
-                        <canvas id="chartMI" class="chart-panel top-chart"></canvas>
-                        <canvas id="chartPhase" class="chart-panel top-chart"></canvas>
+                        <canvas id="chartMI" class="chart-panel top-chart active"></canvas>
                         <canvas id="chartVPA" class="chart-panel top-chart"></canvas>
+                    </div>
+                    <div class="chart-label">
+                        Phase Angle of MI
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartPhase" class="chart-panel"></canvas>
+                    </div>
+                    <div class="chart-controls">
+                        <label class="compare-toggle">
+                            <input type="checkbox" id="compareData">
+                            <span>Compare second curve</span>
+                        </label>
                     </div>
                     <div class="info-box">
                         <h4>What does this plot show?</h4>
@@ -175,21 +196,16 @@
                         </p>
                     </div>
                 </div>
-            <div class="chart-controls">
-                <label class="compare-toggle">
-                    <input type="checkbox" id="compareData">
-                    <span>Compare second curve</span>
-                </label>
-            </div>
             </div>
         </div>
         <div class="panel right-panel">
         <div class="box">
             <div class="card-title">
+                <span class="card-number">4</span>
                 Anthropometric Data
                 <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         All the necessary proband data is listed here. For additional parameters press the button.
                     </span>
                 </span>
@@ -270,10 +286,11 @@
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
+                <span class="card-number">1</span>
                 Data Selection - Model Data
                 <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         In this section the excitation direction can be selected and the force constraints set.
                     </span>
                 </span>
@@ -297,6 +314,10 @@
                     </select>
                 </div>
             </div>
+            <div class="coordinate-wrapper">
+                <img src="HAS_ISO10068_transparent.png"
+                    alt="Coordinate system">
+            </div>
             <div class="slider-group">
                 <div class="slider-header">
                     <label>Push Force F<sub>p</sub> [N]</label>
@@ -318,27 +339,26 @@
         <div class="center-panel center-panel-bottom">
             <div class="chart-card">
             <div class="card-title">
+                <span class="card-number">3</span>
                 Results from Hand-Arm-Model
                 <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         This section shows model-based impedance data for selected subjects and force settings. To compare a second curve press the button beneath the chart.
                     </span>
                 </span>
             </div>
-                <div class="tab-header">
-                    <button id="btnMI_Mod" class="active"
-                        onclick="switchChart('mod','chartMI_Mod',this)">
+                <div class="chart-container-mod">
+                    <div class="chart-label">
                         Magnitude of MI
-                    </button>
-                    <button
-                        onclick="switchChart('mod','chartPhase_Mod',this)">
-                        Phase Angle of MI
-                    </button>
+                    </div>
+                    <canvas id="chartMI_Mod" class="mod-chart active"></canvas>
                 </div>
                 <div class="chart-container-mod">
-                        <canvas id="chartMI_Mod" class="mod-chart"></canvas>
-                        <canvas id="chartPhase_Mod" class="mod-chart"></canvas>
+                    <div class="chart-label">
+                        Phase Angle of MI
+                    </div>
+                    <canvas id="chartPhase_Mod" class="mod-chart active"></canvas>
                 </div>
                 <div class="chart-controls">
                     <label class="compare-toggle">
@@ -349,10 +369,11 @@
             </div>
             <div class="box">
             <div class="card-title">
+                <span class="card-number">4</span>
                 Four-mass oscillator model
                 <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         This section contains the structure and components of the model used to compute the data in the "results from hand-arm-model" section.
                     </span>
                 </span>
@@ -385,10 +406,11 @@
         <div class="panel right-panel">
         <div class="box">
         <div class="card-title">
+            <span class="card-number">4</span>
             Model Parameters
             <span class="info-tooltip">
                     ⓘ
-                    <span class="info-tooltip-text">
+                    <span class="info-tooltip-text ">
                         All the model parameters are listed here.
                     </span>
                 </span>
@@ -906,14 +928,16 @@
         function updateModelImage() {
             const excitation = document.getElementById("anregung_Mod").value;
             const img = document.getElementById("modelImage");
+            const imgSym = document.getElementById("modelImageSym");
 
             if (excitation.startsWith("translatorisch")) {
                 img.src = "Viermassenschwinger.png";
+                imgSym.src = "symbole_transl.png";
             } else if (excitation.startsWith("rotatorisch")) {
                 img.src = "Viermassenschwinger_rotat.png";
+                imgSym.src = "symbole_rotat.png";
             }
 
-            const imgSym = document.getElementById("modelImageSym");
         }
 
         async function initializeApp() {
@@ -984,9 +1008,9 @@
                 await loadDirection();
                 populateProbandDropdown(newResMat, "dataMAT");
                 selectProband();  // Recalculates ranges for new direction
-                DOM.compare.checked = false;
-                activeLine = 0;
-                showSecondLegend = false;
+                //DOM.compare.checked = false;
+                //activeLine = 0;
+                //showSecondLegend = false;
                 isLoading = false;
                 updateUI();
                 updateAllCharts();
@@ -1006,9 +1030,9 @@
                 //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
                 selectProband();
                 updateModelImage();
-                DOM.compareMod.checked = false;
-                activeLine_Mod = 0;
-                showSecondLegend_Mod = false;
+                //DOM.compareMod.checked = false;
+                //activeLine_Mod = 0;
+                //showSecondLegend_Mod = false;
                 isLoading = false;
                 updateUI();
                 updateAllCharts();
@@ -1054,7 +1078,6 @@
             document.getElementById("chartMI").classList.add("active");
             document.getElementById("btnMI").classList.add("active");
             document.getElementById("chartMI_Mod").classList.add("active");
-            document.getElementById("btnMI_Mod").classList.add("active");
         });
 
         window.addEventListener('resize', () => {

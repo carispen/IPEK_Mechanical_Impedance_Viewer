@@ -97,14 +97,15 @@ html, body {
     color: var(--color-primary);
 }
 
-/* tooltip box */
 .info-tooltip-text {
     position: absolute;
+
     top: 50%;
     left: calc(100% + 10px);
     transform: translateY(-50%);
 
     width: 240px;
+    max-width: min(240px, calc(100vw - 2rem));
 
     background: #1e293b;
     color: white;
@@ -119,26 +120,119 @@ html, body {
 
     opacity: 0;
     visibility: hidden;
+
     transition: opacity 0.2s ease, transform 0.2s ease;
 
     pointer-events: none;
     z-index: 50;
 }
 
-/* show on hover */
 .info-tooltip:hover .info-tooltip-text {
     opacity: 1;
     visibility: visible;
-    transform: translateY(-50%) translateX(2px);
+}
+
+.right-panel .info-tooltip-text {
+    left: auto;
+    right: calc(100% + 10px);
 }
 
 .wizard {
     display: flex;
     justify-content: center;
-    gap: clamp(1rem, 5vw, 4rem);
-    padding: clamp(0.8rem, 2vw, 1.2rem);
+    align-items: center;
+
+    gap: clamp(3rem, 8vw, 7rem);
+
+    padding: 1rem 2rem;
+
     background: white;
     border-bottom: 1px solid #e2e6eb;
+}
+
+
+.step {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+
+    position: relative;
+
+    color: #888;
+    font-size: var(--font-card-title);
+    font-weight: 500;
+
+    white-space: nowrap;
+}
+
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 28px;
+    height: 28px;
+
+    border-radius: 50%;
+
+    border: 1px solid #b8c2cc;
+
+    color: #777;
+    background: white;
+
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+
+.step.active {
+    color: #003b8e;
+    font-weight: 600;
+}
+
+
+.step.active .step-number {
+    background: #003b8e;
+    border-color: #003b8e;
+    color: white;
+}
+
+
+/* connecting lines */
+.step:not(:last-child)::after {
+    content: "";
+
+    position: absolute;
+
+    top: 50%;
+    left: calc(100% + 1.5rem);
+
+    width: clamp(2rem, 4vw, 5rem);
+
+    height: 1px;
+
+    background: #d5dce5;
+}
+
+.card-number {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 22px;
+    height: 22px;
+
+    margin-right: 0.5rem;
+
+    border-radius: 50%;
+
+    background: #003b8e;
+    color: white;
+
+    font-size: 0.75rem;
+    font-weight: 700;
 }
 
 .intro-section {
@@ -198,16 +292,6 @@ html, body {
     font-size: var(--font-card-title);
     font-weight: 600;
     color: var(--color-primary);
-}
-
-.step {
-    position: relative;
-    color: #888;
-}
-
-.step.active {
-    color: #0052a3;
-    font-weight: 600;
 }
 
 .dashboard {
@@ -293,7 +377,7 @@ html, body {
     display: grid;
     min-width: 0;
     gap: clamp(1rem, 2vw, 1.5rem);
-
+    row-gap: clamp(2rem, 3vw, 3rem);
     grid-template-columns:
         minmax(0, 4fr) minmax(16rem, 2fr);
 }
@@ -657,13 +741,57 @@ input[type="range"]::-moz-focus-outer {
 }
 
 .chart-area {
-    display: flex;
-    flex-wrap: nowrap;
-    flex: 1 1 auto;
-    min-height: 0;
-    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    grid-auto-rows: min-content;
     gap: 1rem;
-    align-items: stretch;
+}
+
+/* Ensure the chart items take full width minus the space for info-box on large displays */
+.chart-area .chart-container,
+.chart-area .chart-label,
+.chart-area .chart-controls {
+    flex: 1 1 100%;       /* Default block items inside chart area to full width */
+}
+
+/* Ensure your upper info-box is ready to scale */
+.chart-area .info-box {
+    grid-column: 2;
+    grid-row: 1 / -1;
+}
+
+/* upper MI/VPA chart */
+.chart-area > .chart-container:nth-child(1) {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+/* phase title */
+.chart-area > .chart-label:nth-child(2) {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+/* phase chart */
+.chart-area > .chart-container:nth-child(3) {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+/* compare toggle */
+.chart-area > .chart-controls:nth-child(4) {
+    grid-column: 1;
+    grid-row: 4;
+}
+
+.chart-label {
+    font-size: var(--font-body);
+    font-weight: 600;
+    color: var(--color-primary);
+
+    padding-bottom: 0.5rem;
+
+    border-bottom: 1px solid #eceff4;
 }
 
 .chart-container {
@@ -673,7 +801,7 @@ input[type="range"]::-moz-focus-outer {
     min-width: 0;
     min-height: 0;
     position: relative;
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 16 / 7;
 }
 
 .chart-container canvas,
@@ -696,6 +824,8 @@ input[type="range"]::-moz-focus-outer {
 
     font-size: var(--font-body);
     line-height: 1.5;
+    grid-column: 2;
+    grid-row: 1 / span 4;
 }
 
 .chart-container-mod {
@@ -704,7 +834,7 @@ input[type="range"]::-moz-focus-outer {
     height: auto;
     min-width: 0; 
     position: relative;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 7;
 }
 
 .model-info-box {
@@ -825,13 +955,14 @@ input[type="range"]::-moz-focus-outer {
 }
 
 @media (max-width: 1350px) {
+    /* 3. Force the upper info-box to drop cleanly underneath the upper charts */
     .chart-area {
-        flex-wrap: wrap;
+        flex-direction: column;   /* Changes side-by-side flex to top-to-bottom stack */
     }
-
-    .info-box {
-        flex: 1 1 100%;
-        max-width: none;
+    
+    .chart-area .info-box {
+        width: 100%;             /* Ensures it spans fully across the bottom */
+        margin-top: 1rem;
     }
 }
 
@@ -846,12 +977,6 @@ input[type="range"]::-moz-focus-outer {
 
     .right-panel {
         grid-column: 1 / -1;
-    }
-}
-
-@media (max-width: 1400px) {
-    .center-panel-bottom {
-        grid-template-columns: 1fr;
     }
 }
 
