@@ -395,7 +395,7 @@ html, body {
 
     grid-template-columns:
         minmax(0, var(--model-main-ratio_mod))
-        minmax(15rem, var(--model-side-ratio_mod));
+        minmax(20rem, var(--model-side-ratio_mod));
 }
 
 .center-panel-bottom > .chart-card,
@@ -940,6 +940,8 @@ input[type="range"]::-moz-focus-outer {
 .imag-4mkd {
     display: flex;
     justify-content: left;
+    height: max;
+    width: max;
     padding-bottom: 1rem;
 }
 
@@ -978,7 +980,7 @@ input[type="range"]::-moz-focus-outer {
     .center-panel-bottom {
         grid-template-columns:
             minmax(0, 2fr)
-            minmax(17rem, 1fr);
+            minmax(20rem, 1fr);
     }
 
     :root {
