@@ -1052,6 +1052,16 @@
             initEventListeners();
             document.getElementById("chartMI").classList.add("active");
             document.getElementById("btnMI").classList.add("active");
+
+            function watchDPR() {
+                const mql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
+                mql.addEventListener('change', () => {
+                    Chart.defaults.devicePixelRatio = window.devicePixelRatio;
+                    Object.values(charts).forEach(c => c?.resize());
+                    watchDPR(); // re-register for the next change
+                }, { once: true });
+            }
+            watchDPR();
         });
                 
         function updateAllCharts() {
