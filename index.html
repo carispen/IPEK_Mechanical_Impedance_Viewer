@@ -111,10 +111,10 @@
             </table>
         </div>
     </div>
+    <section class="data-section">
     <h2 class="section-heading">
         Measured Data
     </h2>
-    <section class="data-section">
     <div class="dashboard">
         <div class="panel left-panel">
         <div class="box">
@@ -421,8 +421,8 @@
                     four-mass oscillator model.
                 </p>
                 <p>
-                    The masses, damping coefficients and stiffness
-                    values describe the dynamic behaviour of the
+                    The masses, damping and stiffness
+                    coefficients describe the dynamic behaviour of the
                     system for the selected excitation direction
                     and force combination.
                 </p>
@@ -437,7 +437,7 @@
             <span class="info-tooltip">
                     ⓘ
                     <span class="info-tooltip-text ">
-                        All the model parameters are listed here.
+                        The values of the model parameters mass, damping and stiffness coefficients are displayed here.
                     </span>
                 </span>
         </div>
@@ -1466,9 +1466,9 @@
                                 return Math.max(4, Math.min(8, w / 150));
                             },
                             pointStyle: 'circle',
-                            borderColor: 'rgba(0,0,255,0.8)',
+                            borderColor: '#003A70',
                             backgroundColor: 'rgba(0,0,0,0)',
-                            pointBorderColor: 'rgba(0,0,255,0.8)',
+                            pointBorderColor: '#003A70',
                             pointBackgroundColor: 'rgba(0,0,0,0)',
                             pointBorderWidth: 1
                         },
@@ -1486,9 +1486,9 @@
                                 return Math.max(4, Math.min(8, w / 150));
                             },
                             pointStyle: 'circle',
-                            borderColor: '#E66A3C',
+                            borderColor: '#E05A2B',
                             backgroundColor: 'rgba(0,0,0,0)',
-                            pointBorderColor: '#E66A3C',
+                            pointBorderColor: '#E05A2B',
                             pointBackgroundColor: 'rgba(0,0,0,0)',
                             pointBorderWidth: 1
                         }
@@ -1579,6 +1579,7 @@
 
             const phase_mod = Zmod.map(z => Math.atan2(z.im, z.re));
 
+            // as in Matlab real part of MI is pushed to chart, for the magnitutde |Z| change to: Math.sqrt(Zmod[f].re**2 + Zmod[f].im**2)
             for (let f = 0; f < freq.length; f++) {
                 if(dataField === "MI" || dataField === "MI_Mod"){
                     y.push(Zmod[f].re);
@@ -1625,9 +1626,9 @@
             F[0] = { re: 1, im: 0 };
             for (let i = 1; i < n; i++) F[i] = { re: 0, im: 0 };
 
-            const nK = matrixNorm2(K);
-            const nC = matrixNorm2(C);
-            const nM = matrixNorm2(M);
+            const nK = spectralNormApprox(K);
+            const nC = spectralNormApprox(C);
+            const nM = spectralNormApprox(M);
 
             const tolRcond = 1e-12;
             const tau = 1e-8;
@@ -1671,14 +1672,18 @@
             return Array(rows).fill(null).map(() => Array(cols).fill(0));
         }
 
-        function matrixNorm2(A) {
-            let sum = 0;
-            for (const row of A) {
-                for (const val of row) {
-                    sum += val * val;
+        function spectralNormApprox(A) {
+            // Gershgorin upper bound: max row sum of |entries|
+            // Tight for diagonally dominant matrices like K and C
+            let maxRowSum = 0;
+            for (let r = 0; r < A.length; r++) {
+                let rowSum = 0;
+                for (let c = 0; c < A[r].length; c++) {
+                    rowSum += Math.abs(A[r][c]);
                 }
+                maxRowSum = Math.max(maxRowSum, rowSum);
             }
-            return Math.sqrt(sum);
+            return maxRowSum;
         }
 
         function rcondComplex(A) {
@@ -1778,9 +1783,9 @@
 
             const X = buildX(Fg, Fp);
             const result = math.multiply(X, math.transpose(modelMat));
-            const resultArray = Array.isArray(result) ? result.flat() : [result];
+            return Array.isArray(result) ? result.flat() : [result];
             
-            return clampPositive(resultArray);
+            //return clampPositive(resultArray);
         }
 
         function writeVector(prefix, vec) {
