@@ -44,7 +44,7 @@ html, body {
     --color-muted: #64748b;
     --color-info-box: #fafafa;
 
-    --chart-height: clamp(180px, 12vw, 280px);
+    --chart-height: clamp(250px, 15vw, 300px);
     --model-side-ratio: 1.06fr;
     --model-main-ratio: 2.18fr;
     --model-side-ratio_mod: 0.8fr;
@@ -395,7 +395,7 @@ html, body {
 
     grid-template-columns:
         minmax(0, var(--model-main-ratio_mod))
-        minmax(20rem, var(--model-side-ratio_mod));
+        minmax(280px, var(--model-side-ratio_mod));
 }
 
 .center-panel-bottom > .chart-card,
@@ -783,7 +783,7 @@ input[type="range"]::-moz-focus-outer {
     display: grid;
     grid-template-columns:
         minmax(0, var(--model-main-ratio))
-        minmax(20rem, var(--model-side-ratio));
+        minmax(280px, var(--model-side-ratio));
     grid-auto-rows: min-content;
     gap: 1rem;
 }
@@ -830,9 +830,8 @@ input[type="range"]::-moz-focus-outer {
 /* Upper chart */
 .chart-container {
     width: 100%;
-    aspect-ratio: 2.2 / 1;
     height: var(--chart-height);
-    min-height: 300px;
+    min-height: 250px;
     position: relative;
 }
 
@@ -840,9 +839,8 @@ input[type="range"]::-moz-focus-outer {
 /* Lower model charts */
 .chart-container-mod {
     width: 100%;
-    aspect-ratio: 16 / 10;
     height: var(--chart-height);
-    min-height: 300px;
+    min-height: 250px;
     position: relative;
 }
 
@@ -984,7 +982,7 @@ input[type="range"]::-moz-focus-outer {
     }
 
     :root {
-        --chart-height: clamp(170px, 14vw, 240px);
+        --chart-height: clamp(240px, 16vw, 280px);
     }
 }
 
