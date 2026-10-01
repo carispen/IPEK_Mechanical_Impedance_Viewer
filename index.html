@@ -10,6 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/pako@2/dist/pako.min.js"></script>
 </head>
 <body>
+    <!-- Page header and project information -->
     <header class="site-header">
         <div class="header-left">
             <h1>Mechanical Impedance Viewer for the Hand-Arm System</h1>
@@ -24,6 +25,7 @@
             <img src="./logo_kit.png" alt="KIT Logo">
         </div>
     </header>
+    <!-- Application workflow overview -->
     <div class="wizard">
         <div class="step active">
             <span class="step-number">1</span>
@@ -42,6 +44,7 @@
             <span class="step-label">Parameters</span>
         </div>
     </div>
+    <!-- Introduction and terminology -->
     <div class="intro-section">
         <div class="box">
             <div class="card-title">
@@ -111,11 +114,15 @@
             </table>
         </div>
     </div>
+    <!-- ======================================================================
+     Measured data
+     ====================================================================== -->
     <section class="data-section">
     <h2 class="section-heading">
         Measured Data
     </h2>
     <div class="dashboard">
+        <!-- Data selection -->
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
@@ -167,6 +174,7 @@
             </div>
         </div>
         </div>
+        <!-- Measurement results -->
         <div class="center-panel">
             <div class="chart-card">
             <div class="card-title">
@@ -224,6 +232,7 @@
                 </div>
             </div>
         </div>
+        <!-- Anthropometric data -->
         <div class="panel right-panel">
         <div class="box">
             <div class="card-title">
@@ -304,11 +313,15 @@
         </div>
         </div>
     </section>
+    <!-- ======================================================================
+     Model-based data
+     ====================================================================== -->
     <section class="data-section">
     <h2 class="section-heading">
         Model-Based Data
     </h2>
     <div class="dashboard">
+        <!-- Model input selection -->
         <div class="panel left-panel">
         <div class="box">
             <div class="card-title">
@@ -363,6 +376,7 @@
         </div>
         </div>
         <div class="center-panel center-panel-bottom">
+            <!-- Model results -->
             <div class="chart-card">
             <div class="card-title">
                 <span class="card-number">3</span>
@@ -393,6 +407,7 @@
                     </label>
                 </div>
             </div>
+            <!-- Four-mass oscillator representation -->
             <div class="box">
             <div class="card-title">
                 <span class="card-number">4</span>
@@ -429,6 +444,7 @@
             </div>
             </div>
         </div>
+        <!-- Model parameters -->
         <div class="panel right-panel">
         <div class="box">
         <div class="card-title">
@@ -505,6 +521,10 @@
     </div>
     </section>
     <script>
+        // ============================================================================
+        // Application state and data sources
+        // ============================================================================
+
         const DOM = {};
         const charts = {
             chart1: null,
@@ -553,6 +573,10 @@
         let dimSelected = dimAnr.translatorischZ;
         let dimSelected_Mod = dimAnr.translatorischZ;
 
+        // ============================================================================
+        // DOM initialization
+        // ============================================================================
+
         function initDOM() {
             DOM.sliderAK = document.getElementById("andk");
             DOM.inputAK = document.getElementById("valAK");
@@ -580,18 +604,14 @@
             });
         }
 
-        // Cache for frequency arrays . 
+        // ============================================================================
+        // Data loading and preprocessing
+        // ============================================================================
+
+        // Cache frequency arrays to avoid rebuilding identical frequency vectors
         const frequencyCache = {};
 
-        // Debounce function
-        function debounce(func, delay) {
-            let timeoutId;
-            return function(...args) {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => func(...args), delay);
-            };
-        }
-
+        // Load a JSON data file and decompress it when the source is gzip-compressed
         async function loadJson(url) {
             const response = await fetch(url, {
                 cache: "no-cache"
@@ -604,13 +624,21 @@
             const buffer = await response.arrayBuffer();
 
             if (url.endsWith(".gz")) {
-                const decompressed = pako.inflate(new Uint8Array(buffer), { to: "string" });
+                // Decompress gzip data before parsing the JSON content
+                const decompressed = pako.inflate(
+                    new Uint8Array(buffer), 
+                    { to: "string" }
+                );
                 return JSON.parse(decompressed);
             }
-
             return JSON.parse(new TextDecoder().decode(buffer));
         }
 
+        // ============================================================================
+        // Chart handling and visualization
+        // ============================================================================
+
+        // Show the selected chart and hide the other charts in the same chart group
         function switchChart(group, canvasId, btn = null) {
 
             if (btn) {
@@ -633,6 +661,8 @@
                 .classList.add("active");
         }
 
+        // Model coefficient files grouped by excitation direction.
+        // Each direction provides the force-dependent mass, damping, and stiffness matrices.
         const MODEL_DEFS = {
             translatorischX: {
                 betaFiles: {
@@ -678,6 +708,8 @@
             }
         };
 
+        // Build the regression vector used by the force-dependent model:
+        // [1, Fg, Fp, Fg * Fp]
         function buildX( Fg, Fp){
 
             return[
@@ -704,6 +736,8 @@
                     : "Show additional parameters ▼";
         }
 
+        // Load the model coefficient matrices for the selected excitation direction
+        // The three files are loaded in parallel because they are independent
         async function loadModelMatrices() {
             const dirKey = document.getElementById("anregung_Mod").value;
             const def = MODEL_DEFS[dirKey];
@@ -724,12 +758,16 @@
             return Number.isFinite(n) ? n : fallback;
         }
 
+        // Extract anthropometric information and the available force limits
+        // for the currently selected subject or for all subjects
         function extractSubjectMeta(resultsMatrix) {
             if (!resultsMatrix || resultsMatrix.length === 0) return null;
 
             //const gender = num(resultsMatrix[0].gender, 1);
 
             // Check whether "All Subjects" is selected
+            // Display "mixed" when all subjects are selected; otherwise use the
+            // gender information stored for the selected subject
             const selectedSubject = document.getElementById("dataMAT").value;
 
             let genderText = "unknown";
@@ -772,10 +810,13 @@
             newResMat_Mod = await loadJson(dirFiles[key_Mod]);
         }
 
+        // Select the measurement data for the chosen subject and update the
+        // available push-force and grip-force ranges for both data sets
         function selectProband() {
             const chosenProb = document.getElementById("dataMAT").value;
-            //const chosenProb_Mod = document.getElementById("dataMAT_Mod").value;
+            //const chosenProb_Mod = document.getElementById("dataMAT_Mod").value; // to be added, if model for seperate subjects exists
 
+            // "ALL" keeps the complete measurement matrix; otherwise filter by subject number.
             mechImpe = (chosenProb === "ALL")
                 ? newResMat
                 : newResMat.filter(r => r.SubjectNumber === Number(chosenProb));
@@ -841,6 +882,7 @@
             select.value = subjects[0];
         }
 
+        // Return all unique numeric force values available in the selected data
         function getUnionRange(matrix, field) {
             return [...new Set(
                 matrix
@@ -849,7 +891,8 @@
             )].sort((a, b) => a - b);
         }
 
-        function computeForceRangesForProband(resultsMatrix, isModChart = false) {
+        // Determine the available push-force and grip-force values for a data set
+        function computeForceRangesForProband(resultsMatrix, isModChart = false) { //
             if (!resultsMatrix || resultsMatrix.length === 0) {
                 return { rangeFp: [], rangeFg: [] };
             }
@@ -860,6 +903,8 @@
             return { rangeFp, rangeFg };
         }
 
+        // Configure the force sliders using the minimum and maximum values available
+        // in the selected data set and generate six equally spaced tick labels
         function setupSliders() {
             const numTicks = 6;
 
@@ -883,7 +928,7 @@
             setupSlider(DOM.sliderAK, DOM.inputAK, minValFp, maxValFp, ticksFp, "AKmarkers");
             setupSlider(DOM.sliderAK_Mod, DOM.inputAK_Mod, minValFp_Mod, maxValFp_Mod, ticksFp_Mod, "AKmarkers_Mod");
 
-            // Grip
+            // Configure grip-force slider
             const minValFg = Math.min(...rangeFg);
             const maxValFg = Math.max(...rangeFg);
 
@@ -905,6 +950,8 @@
             setupSlider(DOM.sliderGK_Mod, DOM.inputGK_Mod, minValFg_Mod, maxValFg_Mod, ticksFg_Mod, "GKmarkers_Mod");
         }
 
+        // Connect a range slider with its numeric input field and update the charts
+        // whenever the selected force value changes
         function setupSlider(slider, input, min, max, ticks, datalistId) {
 
             if (!slider || !input) {
@@ -917,6 +964,7 @@
             slider.value = min;
             input.value = min;
 
+            // Keep the slider and text field synchronized
             const datalist = document.getElementById(datalistId);
             if (!datalist) return;
 
@@ -941,6 +989,7 @@
                 let v = Number(input.value);
                 if (Number.isNaN(v)) return;
 
+                // Clamp manually entered values to the valid force range
                 v = Math.min(max, Math.max(min, v));
 
                 slider.value = v;
@@ -951,21 +1000,27 @@
             };
         }
 
+        // Update the model illustrations to match the selected excitation type
         function updateModelImage() {
             const excitation = document.getElementById("anregung_Mod").value;
             const img = document.getElementById("modelImage");
             const imgSym = document.getElementById("modelImageSym");
 
             if (excitation.startsWith("translatorisch")) {
+                // Use the translational model illustrations
                 img.src = "Viermassenschwinger.png";
                 imgSym.src = "symbole_transl.png";
             } else if (excitation.startsWith("rotatorisch")) {
+                // Use the rotational model illustrations
                 img.src = "Viermassenschwinger_rotat.png";
                 imgSym.src = "symbole_rotat.png";
             }
 
         }
 
+        // Initialize the application in the order required by the data dependencies:
+        // load data, populate controls, load model coefficients, update the UI,
+        // create the charts, and finally attach resize observers.
         async function initializeApp() {
             await loadDirection();
             populateProbandDropdown(newResMat, "dataMAT");
@@ -984,6 +1039,21 @@
             });
         }
 
+        // ============================================================================
+        // Chart updates and responsive resizing
+        // ============================================================================
+
+        // Delay repeated chart updates while the user is continuously changing a control
+        function debounce(func, delay) {
+            let timeoutId;
+            return function(...args) {
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => func(...args), delay);
+            };
+        }
+
+        // Register all user-interaction handlers for selections, force controls,
+        // comparison toggles, and excitation-direction changes.
         function initEventListeners() {
 
             DOM.compare.onchange = e => {
@@ -1011,6 +1081,7 @@
             };
 
             DOM.selectDir.onchange = async () => {
+                // Reload measurement data because the available data depends on excitation direction.
                 isLoading = true;
 
                 await loadDirection();
@@ -1025,6 +1096,7 @@
             };
 
             DOM.selectDirMod.onchange = async () => {
+                // Reload both model coefficient data and source data for the new excitation direction.
                 isLoading = true;
 
                 await loadDirection();
@@ -1064,6 +1136,8 @@
             watchDPR();
         });
                 
+        // Recalculate all visible measurement and model charts using the current
+        // subject, excitation direction, and force settings.
         function updateAllCharts() {
             if (isLoading) return;
 
@@ -1073,6 +1147,7 @@
             const excitation_Mod = document.getElementById("anregung_Mod").value;
             const dynamicMaxMI_Mod = excitation_Mod.startsWith("rotatorisch") ? "1" : "800";
 
+            // Measured-data charts
             charts.chart1 = createChart({
                 canvasId: "chartMI",
                 chartRef: charts.chart1,
@@ -1115,6 +1190,7 @@
                 //titel: "Vibration Power Absorption"
             });
 
+            // Model-based charts
             charts.chart4 = createChart({
                 canvasId: "chartMI_Mod",
                 chartRef: charts.chart4,
@@ -1144,16 +1220,8 @@
             });
         }
 
-        function setCanvasDPR(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            const ctx = canvas.getContext("2d");
-            ctx.scale(dpr, dpr);
-        }
-
+        // Watch the chart container for layout changes and let Chart.js recalculate
+        // the canvas dimensions when the container size changes.
         function observeChartContainer(canvasId) {
             const container = document.getElementById(canvasId).parentElement;
             new ResizeObserver(() => {
@@ -1166,6 +1234,7 @@
             }).observe(container);
         }
 
+        // Map each chart canvas to the corresponding data field in the source data.
         function getDataField(canvasId) {
             switch (canvasId) {
                 case "chartMI":        return "MI";
@@ -1182,6 +1251,8 @@
             return canvasId === "chartMI" || canvasId === "chartVPA";
         }
 
+        // Set the frequency range according to the excitation direction and the
+        // frequency range available for that measurement.
         function getMaxFreq(excitation) {
             if (excitation.startsWith("rotatorisch")) {
                 return 100;
@@ -1192,6 +1263,8 @@
             return 500;
         }
 
+        // Define the default maximum y-axis value for mechanical impedance charts.
+        // Non-MI charts use automatic y-axis scaling.
         function getMaxY(canvasId, excitation) {
             // Only affect MI charts
             if (canvasId === "chartMI" || canvasId === "chartMI_Mod") {
@@ -1204,6 +1277,8 @@
             return null; // Return null for non-MI charts
         }
 
+        // Generate and cache the frequency values used for charting.
+        // The same frequency vector is reused for all charts with the same maximum frequency.
         function buildFrequencyArray(maxFreq) {
             const cacheKey = `freq_${maxFreq}`;
             if (frequencyCache[cacheKey]) {
@@ -1230,6 +1305,12 @@
             return { excitationText, probandText };
         }
 
+        // ============================================================================
+        // Measurement data interpolation
+        // ============================================================================
+
+        // Select and interpolate measured impedance data for the requested push and
+        // grip forces. Data is processed separately for each subject and then aver
         function selectMat(resultsMatrix, initFp, initFg, canvasId) {
             if (!resultsMatrix || resultsMatrix.length === 0) { 
                 return { x: [], y: [] };
@@ -1251,7 +1332,8 @@
             const initFpNum = Number(initFp);
             const initFgNum = Number(initFg);
 
-            // Group data by subject
+            // Group the measurement rows by subject so that interpolation is performed
+            // independently for each subject.
             const subjectMap = {};
             for (const row of resultsMatrix) {
                 const subjectNum = row.SubjectNumber;
@@ -1261,10 +1343,11 @@
                 subjectMap[subjectNum].push(row);
             }
 
+            // Process each frequency independently.
             for (let i = 0; i < freq.length; i++) {
                 const allValues = [];
 
-                // Process each subject separately
+                // Interpolate separately for each subject using the available force values.
                 for (const subjectNum in subjectMap) {
                     const subjectData = subjectMap[subjectNum];
                     const subjectRangeFp = getUnionRange(subjectData, "TargetPushForce").filter(Number.isFinite);
@@ -1295,39 +1378,39 @@
                         const rowFpNum = Number(row.TargetPushForce);
                         const rowFgNum = Number(row.TargetGripForce);
 
-                        // Exact match
+                        // Use the measured value directly when the requested force combination exists.
                         if (rowFpNum === initFpNum && rowFgNum === initFgNum) {
                             valMI.push(value);
                         }
                         
                         if (!subjectRangeFp.includes(initFpNum) || !subjectRangeFg.includes(initFgNum)) {
                             if (initFpNum <= minFp) {
-                                // lower boundary
+                                // Lower boundary: interpolate between the two lowest available push-force values.
                                 Fp_low = minFp;
                                 Fp_high = subjectRangeFp.find(v => v > minFp);
                             } 
                             else if (initFpNum >= maxFp) {
-                                // upper boundary
+                                // Upper boundary: interpolate between the two highest available push-force values.
                                 Fp_low = subjectRangeFp.filter(v => v < maxFp).at(-1);
                                 Fp_high = maxFp;
                             } 
                             else {
-                                // normal interpolation
+                                // Interior point: find the two surrounding push-force values.
                                 Fp_low = subjectRangeFp.filter(v => v <= initFpNum).at(-1);
                                 Fp_high = subjectRangeFp.find(v => v > initFpNum);
                             }
                             if (initFgNum <= minFg) {
-                                // lower boundary
+                                // Lower boundary: interpolate between the two lowest available grip-force values.
                                 Fg_low = minFg;
                                 Fg_high = subjectRangeFg.find(v => v > minFg);
                             } 
                             else if (initFgNum >= maxFg) {
-                                // upper boundary
+                                // Upper boundary: interpolate between the two highest available grip-force values.
                                 Fg_low = subjectRangeFg.filter(v => v < maxFg).at(-1);
                                 Fg_high = maxFg;
                             } 
                             else {
-                                // normal interpolation
+                                // Interior point: find the two surrounding grip-force values.
                                 Fg_low = subjectRangeFg.filter(v => v <= initFgNum).at(-1);
                                 Fg_high = subjectRangeFg.find(v => v > initFgNum);
                             }
@@ -1349,23 +1432,6 @@
 
                             if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_high)
                                 data_Fg_high_Fp_high.push(value);
-                            //console.log({ Fp_low, Fp_high, Fg_low, Fg_high });
-
-                            // Check if we have valid boundaries
-                            /*if (Fp_low !== undefined && Fp_high !== undefined && Fg_low !== undefined && Fg_high !== undefined) {
-                                if (rowFpNum === Fp_low && rowFgNum === Fg_low) {
-                                    data_Fg_low_Fp_low.push(value);
-                                }
-                                if (rowFpNum === Fp_high && rowFgNum === Fg_low) {
-                                    data_Fg_low_Fp_high.push(value);
-                                }
-                                if (rowFpNum === Fp_low && rowFgNum === Fg_high) {
-                                    data_Fg_high_Fp_low.push(value);
-                                }
-                                if (rowFpNum === Fp_high && rowFgNum === Fg_high) {
-                                    data_Fg_high_Fp_high.push(value);
-                                }
-                            }*/
                         }
                     }
 
@@ -1375,14 +1441,14 @@
                     } else if (data_Fg_low_Fp_low.length > 0 && data_Fg_low_Fp_high.length > 0 && 
                             data_Fg_high_Fp_low.length > 0 && data_Fg_high_Fp_high.length > 0) {
 
-                        //const distanceFp_low = (initFpNum - Fp_low) / (Fp_high - Fp_low);
-                        //const distanceFg_low = (initFgNum - Fg_low) / (Fg_high - Fg_low);
-
+                        // Store the four surrounding force combinations required for bilinear
+                        // interpolation in push-force and grip-force space.
                         const data_low_low_med = math.mean(math.abs(data_Fg_low_Fp_low));
                         const data_low_high_med = math.mean(math.abs(data_Fg_low_Fp_high));
                         const data_high_low_med = math.mean(math.abs(data_Fg_high_Fp_low));
                         const data_high_high_med = math.mean(math.abs(data_Fg_high_Fp_high));
 
+                        // First interpolate with respect to grip force, then with respect to push force.
                         const Mi_inter_Fg_Fphigh = data_low_high_med * (1 - distanceFg_low) + data_high_high_med * distanceFg_low;
                         const Mi_inter_Fg_Fplow = data_low_low_med * (1 - distanceFg_low) + data_high_low_med * distanceFg_low;
                         const Mi_inter = Mi_inter_Fg_Fplow * (1 - distanceFp_low) + Mi_inter_Fg_Fphigh * distanceFp_low;
@@ -1400,6 +1466,12 @@
             return { x, y };
         }
 
+        // ============================================================================
+        // Measurement data and general chart construction
+        // ============================================================================
+
+        // Create a Chart.js line chart or update an existing chart with the current data.
+        // The same function is used for measured and model-based results.
         function createChart({canvasId,chartRef,resultsMatrix,store,AK,GK,minValue,axisTitel,labelPrefix}) { // insertargument "maxValue" after minValue if needed to set max y-axis
             if (!resultsMatrix) return chartRef;
 
@@ -1410,6 +1482,7 @@
             const initFp = AK;
             const initFg = GK;
 
+            // Select the calculation method according to whether this is a model chart.
             const liveData = isMod
                 ? callModelData(resultsMatrix, Number(initFp), Number(initFg), canvasId)
                 : selectMat(resultsMatrix, initFp, initFg, canvasId);
@@ -1424,12 +1497,13 @@
             const ctxInfo = getLegendContext(isMod);
             const newLabel = `${labelPrefix} | ${ctxInfo.excitationText} | ${ctxInfo.probandText} | Fp: ${initFp} Fg: ${initFg}`;
 
+            // Store the current curve so that a second condition can be displayed for comparison.
             store[currentActiveLine] = {
                 x: liveData.x,
                 y: liveData.y,
                 Fp: initFp,
                 Fg: initFg,
-                label: newLabel       // ← save the full label at capture time
+                label: newLabel // Save the complete legend text together with the stored curve.
             };
 
             if (chartRef) {
@@ -1556,6 +1630,12 @@
             });
         }
 
+        // ============================================================================
+        // Four-mass oscillator model
+        // ============================================================================
+
+        // Calculate the mechanical impedance of the four-mass oscillator model
+        // for the selected push force, grip force, and excitation direction.
         function callModelData(resultsMatrix, Fp, Fg, canvasId){
 
             if (!rangeFp_Mod || !rangeFg_Mod) { 
@@ -1571,6 +1651,7 @@
             const freq = buildFrequencyArray(maxFreq);
             const w = freq.map(f => 2*Math.PI*f);
 
+            // Evaluate the force-dependent mass, damping, and stiffness parameters.
             const m_model = matlabModel(Fg, Fp, m_beta); // add resultsMatrix if needed for Matlab modell
             const d_model = matlabModel(Fg, Fp, d_beta); // add resultsMatrix if needed for Matlab modell
             const k_model = matlabModel(Fg, Fp, k_beta); // add resultsMatrix if needed for Matlab modell
@@ -1580,6 +1661,7 @@
                 return { x: [], y: [] };
             }
 
+            // Calculate the complex mechanical impedance of the four-mass model.
             const {Zmod} = impedance_mkd(
                 m_model,
                 d_model,
@@ -1589,7 +1671,8 @@
 
             const phase_mod = Zmod.map(z => Math.atan2(z.im, z.re));
 
-            // as in Matlab real part of MI is pushed to chart, for the magnitutde |Z| change to: Math.sqrt(Zmod[f].re**2 + Zmod[f].im**2)
+            // The impedance chart uses the real part of Z, consistent with the MATLAB implementation.
+            // To display the magnitude |Z| instead, use Math.sqrt(Zmod[f].re**2 + Zmod[f].im**2).
             for (let f = 0; f < freq.length; f++) {
                 if(dataField === "MI" || dataField === "MI_Mod"){
                     y.push(Zmod[f].re);
@@ -1602,9 +1685,13 @@
             return { x, y };
         }
 
+        // Calculate the complex mechanical impedance of the four-mass oscillator.
+        // The mass, damping, and stiffness matrices are assembled first, followed by
+        // the frequency-dependent dynamic stiffness matrix and its complex solution.
         function impedance_mkd(m, d, k, w) {
             const n = m.length;
 
+            // Assemble the mass, damping, and stiffness matrices of the lumped-parameter model.
             const M = zeros(n, n);
             for (let i = 0; i < n; i++) M[i][i] = m[i];
 
@@ -1632,10 +1719,12 @@
                 }
             }
 
+            // Apply unit excitation force to the first mass.
             const F = Array(n).fill(null).map(() => ({ re: 1, im: 0 }));
             F[0] = { re: 1, im: 0 };
             for (let i = 1; i < n; i++) F[i] = { re: 0, im: 0 };
 
+            // Estimate matrix magnitudes for the numerical regularization used near singular frequencies.
             const nK = spectralNormApprox(K);
             const nC = spectralNormApprox(C);
             const nM = spectralNormApprox(M);
@@ -1646,9 +1735,12 @@
             const Zmod = [];
             const Ymod = [];
 
+            // Solve the model independently at each excitation frequency.
             for (let i = 0; i < w.length; i++) {
                 const wi = w[i];
 
+                // Construct the complex dynamic stiffness matrix:
+                // D = K - ω²M + iωC.
                 let D = zeros(n, n).map((row, r) =>
                     row.map((_, c) => ({
                         re: K[r][c] - wi * wi * M[r][c],
@@ -1657,6 +1749,7 @@
                 );
 
                 const rc = rcondComplex(D);
+                // Add a small diagonal regularization when the matrix is close to singular.
                 if (rc < tolRcond) {
                     const eps = tau * (nK + wi * nC + wi * wi * nM);
                     for (let j = 0; j < n; j++) {
@@ -1666,12 +1759,14 @@
 
                 const q = solveComplex(D, F);
 
+                // Add a small diagonal regularization when the matrix is close to singular.
                 const v1 = {
                     re: -wi * q[0].im,
                     im: wi * q[0].re
                 };
 
                 Ymod.push({ ...v1 });
+                // Mechanical impedance is defined as force divided by velocity.
                 Zmod.push(complexDiv({ re: 1, im: 0 }, v1));
             }
 
@@ -1682,9 +1777,12 @@
             return Array(rows).fill(null).map(() => Array(cols).fill(0));
         }
 
+        // Gershgorin upper bound: max row sum of |entries|.
+        // Tight for diagonally dominant matrices like K and C.
+        // Approximate the matrix norm using the maximum absolute row sum.
+        // This provides an upper bound that is suitable for the regularization scale
+        // used for the diagonally dominant stiffness and damping matrices.
         function spectralNormApprox(A) {
-            // Gershgorin upper bound: max row sum of |entries|
-            // Tight for diagonally dominant matrices like K and C
             let maxRowSum = 0;
             for (let r = 0; r < A.length; r++) {
                 let rowSum = 0;
@@ -1696,6 +1794,8 @@
             return maxRowSum;
         }
 
+        // Estimate the conditioning of a complex matrix from the ratio of the
+        // smallest to largest diagonal magnitudes.
         function rcondComplex(A) {
             const n = A.length;
             let maxDiag = 0;
@@ -1708,12 +1808,14 @@
             return maxDiag === 0 ? 0 : minDiag / maxDiag;
         }
 
+        // Solve a complex linear system using Gaussian elimination with partial pivoting.
         function solveComplex(A, b) {
             const n = A.length;
 
             const M = A.map(row => row.map(c => ({ re: c.re, im: c.im })));
             const rhs = b.map(c => ({ re: c.re, im: c.im }));
 
+            // Select the row with the largest pivot magnitude to improve numerical stability.
             for (let col = 0; col < n; col++) {
                 let maxMag = 0;
                 let pivotRow = col;
@@ -1730,6 +1832,7 @@
 
                 const pivot = M[col][col];
 
+                // Solve the resulting upper-triangular system by back substitution.
                 for (let row = col + 1; row < n; row++) {
                     const factor = complexDiv(M[row][col], pivot);
                     for (let j = col; j < n; j++) {
@@ -1751,6 +1854,7 @@
             return x;
         }
 
+        // Complex-number helper functions used by the model solver.
         function complexMul(a, b) {
             return {
                 re: a.re * b.re - a.im * b.im,
@@ -1758,6 +1862,7 @@
             };
         }
 
+        // Complex-number helper functions used by the model solver.
         function complexDiv(a, b) {
             const denom = b.re * b.re + b.im * b.im;
             return {
@@ -1766,6 +1871,7 @@
             };
         }
 
+        // Complex-number helper functions used by the model solver.
         function complexSub(a, b) {
             return { re: a.re - b.re, im: a.im - b.im };
         }
@@ -1788,14 +1894,16 @@
             return vec.map(v => Math.max(v, eps));
         }
 
+        // Evaluate the force-dependent model coefficients using the regression vector
+        // [1, Fg, Fp, Fg * Fp].
+        // TODO: Include measurement-dependent terms if the model is later extended
+        // to use subject-specific input data, see next two comments.
         function matlabModel(Fg, Fp, modelMat) { // add resultsMatrix as argument when Matlab model will be dependent on resMat
             if (!modelMat) return []; //if (!modelMat || !resultsMatrix) return [];
 
             const X = buildX(Fg, Fp);
             const result = math.multiply(X, math.transpose(modelMat));
             return Array.isArray(result) ? result.flat() : [result];
-            
-            //return clampPositive(resultArray);
         }
 
         function writeVector(prefix, vec) {
@@ -1804,6 +1912,10 @@
                     Number(v).toFixed(3);
             });
         }
+
+        // ============================================================================
+        // User interface updates
+        // ============================================================================
 
         function updateUI() {
             if (!m_beta || !d_beta || !k_beta) return; // if (!m_beta || !d_beta || !k_beta || !mechImpe_Mod) return; // add if needed for Matlab modell
@@ -1818,7 +1930,6 @@
             writeVector("d", matlabModel(Fg, Fp, d_beta)); // add mechImpe_Mod if needed for Matlab modell
 
             const meta = extractSubjectMeta(mechImpe);
-            //console.log(mechImpe);
             writeMeta(meta);
         }
     </script>
