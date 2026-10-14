@@ -42,7 +42,8 @@ async function computeCurve(group, c, structural = false) {
     const rev = ++c.rev;
     if (structural) setStatus("Loading data…");
 
-    const all = await loadJson(dirFiles[c.cond.dir]);
+    const [all, subjectFile] = await Promise.all([loadJson(dirFiles[c.cond.dir]), loadJson(SUBJECTS_URL)]);
+    subjectData = subjectFile.subjects;
     const betas = isMod ? await loadBetas(c.cond.dir) : null;
     const v2 = isMod ? meanV2(all) : null;
     if (rev !== c.rev || !c.el) return;     // a newer change superseded this one

@@ -15,6 +15,11 @@ const dirFiles = {
     rotatorischY: "data/resultsMatrix_RY.json",
     rotatorischZ: "data/resultsMatrix_RZ.json"
 };
+// Anthropometric data of all subjects keyed by SubjectNumber (generated from the subject
+// overview workbook by tools/subjects_to_json.py); filled on first load in computeCurve
+const SUBJECTS_URL = "data/subjects.json";
+let subjectData = {};
+
 const DIR_LABELS = {
     translatorischZ: "translational zₕ",
     translatorischY: "translational yₕ",

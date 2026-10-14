@@ -30,51 +30,15 @@ function switchChart(group, canvasId, btn = null) {
         .forEach(el => el.hidden = canvasId === "chartVPA");
 }
 
-// Model coefficient files grouped by excitation direction.
-// Each direction provides the force-dependent mass, damping, and stiffness matrices.
-const MODEL_DEFS = {
-    translatorischX: {
-        betaFiles: {
-            m: "data/m_beta_Matrix_TX.json",
-            d: "data/d_beta_Matrix_TX.json",
-            k: "data/k_beta_Matrix_TX.json"
-        },
-    },
-    translatorischY: {
-        betaFiles: {
-            m: "data/m_beta_Matrix_TY.json",
-            d: "data/d_beta_Matrix_TY.json",
-            k: "data/k_beta_Matrix_TY.json"
-        },
-    },
-    translatorischZ: {
-        betaFiles: {
-            m: "data/m_beta_Matrix_TZ.json",
-            d: "data/d_beta_Matrix_TZ.json",
-            k: "data/k_beta_Matrix_TZ.json"
-        },
-    },
-    rotatorischX: {
-        betaFiles: {
-            m: "data/m_beta_Matrix_RX.json",
-            d: "data/d_beta_Matrix_RX.json",
-            k: "data/k_beta_Matrix_RX.json"
-        },
-    },
-    rotatorischY: {
-        betaFiles: {
-            m: "data/m_beta_Matrix_RY.json",
-            d: "data/d_beta_Matrix_RY.json",
-            k: "data/k_beta_Matrix_RY.json"
-        },
-    },
-    rotatorischZ: {
-        betaFiles: {
-            m: "data/m_beta_Matrix_RZ.json",
-            d: "data/d_beta_Matrix_RZ.json",
-            k: "data/k_beta_Matrix_RZ.json"
-        },
-    }
+// Model file per excitation direction (one MATLAB globalModel each): the force-dependent
+// mass, damping and stiffness coefficient matrices m, d and k
+const MODEL_FILES = {
+    translatorischX: "data/model_TX.json",
+    translatorischY: "data/model_TY.json",
+    translatorischZ: "data/model_TZ.json",
+    rotatorischX: "data/model_RX.json",
+    rotatorischY: "data/model_RY.json",
+    rotatorischZ: "data/model_RZ.json"
 };
 
 // Build the regression vector used by the force-dependent model:
@@ -89,12 +53,9 @@ function buildX( Fg, Fp){
     ];
 }
 
-// Load the model coefficient matrices for an excitation direction
-// The three files are loaded in parallel because they are independent
-async function loadBetas(dir) {
-    const files = MODEL_DEFS[dir].betaFiles;
-    const [m, d, k] = await Promise.all([loadJson(files.m), loadJson(files.d), loadJson(files.k)]);
-    return { m, d, k };
+// Load the model coefficient matrices { m, d, k } for an excitation direction
+function loadBetas(dir) {
+    return loadJson(MODEL_FILES[dir]);
 }
 
 function num(v, fallback = 0) {
@@ -102,51 +63,28 @@ function num(v, fallback = 0) {
     return Number.isFinite(n) ? n : fallback;
 }
 
-// Extract anthropometric information and the available force limits
-// for the currently selected subject or for all subjects
+// Anthropometric fields shown in the side card (ids in index.html, keys in data/subjects.json)
+const ANTHRO_FIELDS = ["age", "handWeight", "bodyWeight", "bodyHeight", "FrontReach", "ElbowToWristLength",
+    "thumbLength", "handLength", "palmLength", "palmWidth", "forearmCircumference", "armCircumference"];
+
+// Extract anthropometric information (from data/subjects.json) and the available force limits
+// (from the measurement rows) for the selected subject, or for all subjects of the rows.
+// "All Subjects" is the mean over the subjects measured in this direction, each weighted equally.
 function extractSubjectMeta(resultsMatrix, selectedSubject) {
     if (!resultsMatrix || resultsMatrix.length === 0) return null;
 
-    //const gender = num(resultsMatrix[0].gender, 1);
+    const people = subjectsOf(resultsMatrix).map(s => subjectData[s]).filter(Boolean);
+    const genderText = selectedSubject === "ALL" ? "mixed"
+        : { 1: "male", 2: "female" }[people[0]?.gender] ?? "unknown";
 
-    // Check whether "All Subjects" is selected
-    // Display "mixed" when all subjects are selected; otherwise use the
-    // gender information stored for the selected subject
-    let genderText = "unknown";
-
-    if (selectedSubject === "ALL") {
-        genderText = "mixed";
-    } else {
-        const gender = num(resultsMatrix[0].gender, 1);
-
-        if (gender === 1) {
-            genderText = "male";
-        } else if (gender === 2) {
-            genderText = "female";
-        }
-    }
-
-    // Anthropometrics are the same in every row of a subject: take one row per subject,
-    // so "All Subjects" weights each subject equally, not by its number of repetitions
-    const perSubject = [...new Map(resultsMatrix.map(r => [r.SubjectNumber, r])).values()];
-
-    return {
+    const meta = {
         gender: genderText,
         maxFg: Math.max(...resultsMatrix.map(x => num(x.MaxGripForce)).filter(Number.isFinite)),
-        maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite)),
-
-        handWeight: math.mean(perSubject.map(x => num(x.handWeight))),
-        bodyWeight: math.mean(perSubject.map(x => num(x.bodyWeight))),
-        bodyHeight: math.mean(perSubject.map(x => num(x.bodyHeight))),
-        FrontReach: math.mean(perSubject.map(x => num(x.FrontReach))),
-        ElbowToWristLength: math.mean(perSubject.map(x => num(x.ElbowToWristLength))),
-        thumbLength: math.mean(perSubject.map(x => num(x.thumbLength))),
-        handLength: math.mean(perSubject.map(x => num(x.handLength))),
-        palmLength: math.mean(perSubject.map(x => num(x.palmLength))),
-        palmWidth: math.mean(perSubject.map(x => num(x.palmWidth))),
-        forearmCircumference: math.mean(perSubject.map(x => num(x.forearmCircumference))),
-        armCircumference: math.mean(perSubject.map(x => num(x.armCircumference)))
+        maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite))
     };
+    // A subject missing from subjects.json shows "–" instead of a made-up value
+    ANTHRO_FIELDS.forEach(f => meta[f] = people.length ? math.mean(people.map(p => num(p[f]))) : "–");
+    return meta;
 }
 
 // Rows of one subject, or all rows for "ALL"

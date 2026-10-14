@@ -17,7 +17,8 @@ Every curve has its own type, excitation direction (translational or rotational 
 index.html        Markup only: layout, views, curve-card <template>, script tags
 style.css         All styling, including light/dark theme tokens
 js/               Application code (see below)
-data/             Measurement results and model coefficient matrices (JSON)
+data/             Measurement results, model coefficient matrices and subject data (JSON)
+tools/            Data conversion scripts (not published)
 *.png             Model illustrations, symbols and logos
 ```
 
@@ -28,7 +29,7 @@ The code is split into plain scripts (no modules, no bundler). They share one gl
 | File | Purpose |
 |---|---|
 | `js/state.js` | Global state (`charts`, `plots`), data file URLs (`dirFiles`), chart definitions (`CHART_DEFS`), JSON loading with caching |
-| `js/app.js` | Chart tab switching, model coefficient files (`MODEL_DEFS`), regression vector `buildX`, subject/force-range helpers, model images, `initializeApp` |
+| `js/app.js` | Chart tab switching, model coefficient files (`MODEL_FILES`), regression vector `buildX`, subject/force-range helpers, model images, `initializeApp` |
 | `js/curves.js` | Curve cards: create, remove, toggle, recompute and render the curve list, plot options, side cards, and the `DOMContentLoaded` entry point |
 | `js/charts.js` | Chart redraws and resizing, frequency arrays, interpolation of measured data for arbitrary Fg/Fp (`selectMat`), Chart.js datasets and options |
 | `js/model.js` | Four-mass oscillator: force-dependent m/d/k parameters, complex linear solve, impedance over frequency |
@@ -45,7 +46,25 @@ A small inline script in `<head>` applies the stored theme and sidebar state bef
 
 ## Data source
 
-All data is loaded from the relative path `data/...` (`dirFiles` in `js/state.js`, `MODEL_DEFS` in `js/app.js`). GitHub Pages serves it together with the page, so the data always matches the deployed code, and changes to `data/` take effect locally as soon as the page is reloaded. GitHub Pages compresses `.json` in transit, so the files are stored uncompressed. The `resultsMatrix_TX.json.gz` and `resultsMatrix_RX.json.gz` files contain the same data as the `.json` files and are no longer used.
+All data is loaded from the relative path `data/...` (`dirFiles` in `js/state.js`, `MODEL_FILES` in `js/app.js`). GitHub Pages serves it together with the page, so the data always matches the deployed code, and changes to `data/` take effect locally as soon as the page is reloaded. GitHub Pages compresses `.json` in transit, so the files are stored uncompressed. The `resultsMatrix_TX.json.gz` and `resultsMatrix_RX.json.gz` files contain the same data as the `.json` files and are no longer used.
+
+### Model data
+
+Each excitation direction has one model file, `data/model_TX.json` … `data/model_RZ.json`, matching one MATLAB `globalModel` of the four-mass oscillator. It holds the coefficient matrices for mass `m`, damping `d` and stiffness `k`, each 4×4: one row per mass, one column per term of the regression vector `[1, Fg, Fp, Fg·Fp]` (`buildX` in `js/app.js`). For rotational directions `m` is the moment of inertia J.
+
+```json
+{ "m": [[...], [...], [...], [...]], "d": [...], "k": [...] }
+```
+
+### Subject data
+
+The anthropometric data of all subjects (sex, age, body and hand measures) lives in `data/subjects.json`, keyed by `SubjectNumber`, which links each subject to its rows in the `resultsMatrix_*.json` files. It is generated from the subject overview workbook (`260417_Probandenübersicht.xlsx`), the authoritative source for this data:
+
+```
+python tools/subjects_to_json.py [workbook.xlsx]
+```
+
+The script copies the values unchanged and stops if the workbook's columns were moved or renamed. Regenerate the file after every change to the workbook. The `resultsMatrix_*.json` files still contain older anthropometric columns, which the page ignores; where they differ from the workbook, the workbook is correct. Max push and grip forces are per measurement and still come from the `resultsMatrix_*.json` rows.
 
 ### Data integrity
 
@@ -63,4 +82,4 @@ Then open http://localhost:8000.
 
 ## Deploying
 
-Push to `main`. The workflow `.github/workflows/deploy.yml` copies `index.html`, `style.css`, `*.png`, `js/` and `data/*.json` into the published site; files not listed there (PDFs, MATLAB scripts, `.gz` files) are not published. When adding a new file type the page needs, add it to that workflow.
+Push to `main`. The workflow `.github/workflows/deploy.yml` copies `index.html`, `style.css`, `*.png`, `js/` and `data/*.json` into the published site; files not listed there (PDFs, MATLAB scripts, `.gz` files, the workbook, `tools/`) are not published. When adding a new file type the page needs, add it to that workflow.
