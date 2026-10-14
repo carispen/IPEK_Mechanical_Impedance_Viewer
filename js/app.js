@@ -133,12 +133,12 @@ function updateModelImage(excitation) {
 
     if (excitation.startsWith("translatorisch")) {
         // Use the translational model illustrations
-        img.src = "Viermassenschwinger.png";
-        imgSym.src = "symbole_transl.png";
+        img.src = "four_mass_model_translational.png";
+        imgSym.src = "symbols_translational.png";
     } else if (excitation.startsWith("rotatorisch")) {
         // Use the rotational model illustrations
-        img.src = "Viermassenschwinger_rotat.png";
-        imgSym.src = "symbole_rotat.png";
+        img.src = "four_mass_model_rotational.png";
+        imgSym.src = "symbols_rotational.png";
     }
 
 }
