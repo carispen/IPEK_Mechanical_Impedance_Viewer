@@ -301,13 +301,94 @@ function initPlotOptions() {
     const opts = document.getElementById("optsTpl").content.firstElementChild.cloneNode(true);
     document.querySelector(".pc-list").after(opts);
     opts.querySelectorAll("[data-o]").forEach(el => {
-        if (el.type === "checkbox") el.checked = plot.opts[el.dataset.o];
-        else el.value = plot.opts[el.dataset.o];
         el.oninput = () => {
             plot.opts[el.dataset.o] = el.type === "checkbox" ? el.checked : el.value;
             renderAllCharts();
         };
     });
+    syncOptControls();
+
+    const file = opts.querySelector('input[type="file"]');
+    opts.querySelector('[data-cfg="save"]').onclick = saveConfig;
+    opts.querySelector('[data-cfg="load"]').onclick = () => file.click();
+    file.onchange = async () => {
+        try {
+            await applyConfig(JSON.parse(await file.files[0].text()));
+        } catch (err) {
+            console.error(err);
+            setStatus(`Could not load the config: ${err.message}`, true);
+        }
+        file.value = "";        // the same file can be loaded again
+    };
+}
+
+function syncOptControls() {
+    document.querySelectorAll("[data-o]").forEach(el => {
+        if (el.type === "checkbox") el.checked = plot.opts[el.dataset.o];
+        else el.value = plot.opts[el.dataset.o];
+    });
+}
+
+// ============================================================================
+// Plot config: curves (conditions and style) and plot options as a JSON file
+// ============================================================================
+
+function saveConfig() {
+    const cfg = {
+        version: 1,
+        opts: plot.opts,
+        curves: plot.curves.map(({ name, color, dash, marker, width, band, prc, visible, cond }) =>
+            ({ name, color, dash, marker, width, band, prc, visible, cond }))
+    };
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(cfg, null, 2)], { type: "application/json" }));
+    a.download = "plot_config.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// Replace all curves and options by those of a loaded config. The file comes from the user,
+// so every value is checked: style values end up in the swatch markup, conditions in data URLs.
+async function applyConfig(cfg) {
+    if (!Array.isArray(cfg?.curves) || !cfg.curves.length) throw new Error("no curves in the file");
+    const opt = (v, ok) => ok.includes(v) ? v : undefined;
+    const o = cfg.opts ?? {};
+    plot.opts.legend = opt(o.legend, ["top", "bottom", "right", "chartArea", "none"]) ?? plot.opts.legend;
+    plot.opts.xScale = opt(o.xScale, ["logarithmic", "linear"]) ?? plot.opts.xScale;
+    if (typeof o.grid === "boolean") plot.opts.grid = o.grid;
+    syncOptControls();
+
+    plot.curves.forEach(c => {
+        c.el.remove();
+        c.el = null;            // also drops pending computations of the old curves
+    });
+    plot.next = 0;
+    plot.curves = cfg.curves.map(s => {
+        const c = newCurve();
+        const cond = s.cond ?? {};
+        const prc = Array.isArray(s.prc) ? s.prc.map(Number) : [];
+        if (typeof s.name === "string") c.name = s.name;
+        if (/^#[0-9a-f]{6}$/i.test(s.color)) c.color = s.color;
+        c.dash = opt(s.dash, ["none", ...Object.keys(DASHES)]) ?? c.dash;
+        c.marker = opt(s.marker, ["none", ...MARKERS]) ?? c.marker;
+        c.width = opt(Number(s.width), [1, 1.5, 2, 3]) ?? c.width;
+        c.band = s.band === true;
+        if (prc.length === 2 && prc.every(v => v >= 0 && v <= 1)) c.prc = prc;
+        c.visible = s.visible !== false;
+        c.cond.type = opt(cond.type, ["measured", "model"]) ?? c.cond.type;
+        c.cond.dir = opt(cond.dir, Object.keys(DIR_CODES)) ?? c.cond.dir;
+        // Subject and forces are checked against the data in computeCurve / syncConditionControls
+        c.cond.subject = cond.subject == null ? null : String(cond.subject);
+        ["Fp", "Fg"].forEach(k => c.cond[k] = Number.isFinite(parseFloat(cond[k])) ? String(parseFloat(cond[k])) : null);
+        return c;
+    });
+    plot.active = plot.curves[0];
+    plot.curves[0].open = true;
+    renderCurveList();
+    renderAllCharts();
+    setStatus("Loading data…");
+    await Promise.all(plot.curves.map(c => computeCurve(c, true)));
+    setStatus("");
 }
 
 // Side cards describe the active curve: anthropometric data for a measured curve,

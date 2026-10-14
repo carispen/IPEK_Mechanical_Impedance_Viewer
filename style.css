@@ -709,7 +709,13 @@ main:focus {
     box-shadow: 0 1px 3px rgba(0, 0, 0, .12);
 }
 
-.dl-btn {
+.cfg-row {
+    display: flex;
+    gap: 8px;
+}
+
+.dl-btn,
+.cfg-btn {
     flex: none;
     min-height: 32px;
     padding: 4px 12px;
@@ -726,7 +732,8 @@ main:focus {
     content: "↓ ";
 }
 
-.dl-btn:hover {
+.dl-btn:hover,
+.cfg-btn:hover {
     color: var(--accent);
     border-color: var(--accent);
 }
