@@ -28,6 +28,7 @@ function getDataField(canvasId) {
         case "chartMI":        return "MI";
         case "chartPhase":     return "Phase";
         case "chartVPA":       return "VPA";
+        case "chartAjw":       return "ajw";
         default:
             throw new Error("Unknown canvasId: " + canvasId);
     }
@@ -37,48 +38,6 @@ function shouldTakeAbs(canvasId) {
     return canvasId === "chartMI" || canvasId === "chartVPA";
 }
 
-// Set the frequency range according to the excitation direction and the
-// frequency range available for that measurement.
-function getMaxFreq(excitation) {
-    if (excitation.startsWith("rotatorisch")) {
-        return 100;
-    }
-    if (excitation === "translatorischY") {
-        return 100;
-    }
-    return 500;
-}
-
-// Define the default maximum y-axis value for mechanical impedance charts.
-// Non-MI charts use automatic y-axis scaling.
-function getMaxY(canvasId, excitation) {
-    // Only affect MI charts
-    if (canvasId === "chartMI") {
-        if (excitation.startsWith("rotatorisch")) {
-            return "1";
-        } else {
-            return "800";
-        }
-    }
-    return null; // Return null for non-MI charts
-}
-
-// Generate and cache the frequency values used for charting.
-// The same frequency vector is reused for all charts with the same maximum frequency.
-function buildFrequencyArray(maxFreq) {
-    const cacheKey = `freq_${maxFreq}`;
-    if (frequencyCache[cacheKey]) {
-        return frequencyCache[cacheKey];
-    }
-    
-    const freq = [];
-    for (let f = 10; f <= maxFreq; f += 5) {
-        freq.push(f);
-    }
-    frequencyCache[cacheKey] = freq;
-    return freq;
-}
-
 // ============================================================================
 // Measurement data interpolation
 // ============================================================================
@@ -86,7 +45,7 @@ function buildFrequencyArray(maxFreq) {
 // Select and interpolate measured impedance data for the requested push and
 // grip forces. Data is processed separately for each subject and then averaged.
 // Returns the mean curve and the percentile band lo/hi (prc = [lower, upper], 0…1).
-function selectMat(resultsMatrix, initFp, initFg, canvasId, excitation, prc = [0.05, 0.95]) {
+function selectMat(resultsMatrix, initFp, initFg, canvasId, prc = [0.05, 0.95]) {
     if (!resultsMatrix || resultsMatrix.length === 0) {
         return { x: [], y: [] };
     }
@@ -97,8 +56,8 @@ function selectMat(resultsMatrix, initFp, initFg, canvasId, excitation, prc = [0
     const y = [];
     const off = [];     // band offsets [lower, upper] from the mean per frequency
 
-    const maxFreq = getMaxFreq(excitation);
-    const freq = buildFrequencyArray(maxFreq);
+    // All subjects of a direction share one frequency vector (checked when exporting the data)
+    const freq = resultsMatrix[0].freq;
 
     const initFpNum = Number(initFp);
     const initFgNum = Number(initFg);
@@ -337,6 +296,9 @@ function bandDatasets(c, def) {
     ];
 }
 
+// Y axis titles that differ for rotational excitation
+const ROT_AXIS = { chartMI: "|Zₕ| in Nms/rad", chartAjw: "|a| in rad/s²" };
+
 // Options are rebuilt on every render, so theme colors and plot options are always current.
 function chartOptions(def, opts) {
     const text = cssVar("--chart-text") || "#555";
@@ -390,8 +352,8 @@ function chartOptions(def, opts) {
                 ticks: { color: text }
             },
             y: {
-                ...axis(def.id === "chartMI" && plots[def.group].active?.shown?.dir.startsWith("rotatorisch")
-                    ? "|Zₕ| in Nms/rad" : def.axis),
+                ...axis(plots[def.group].active?.shown?.dir.startsWith("rotatorisch")
+                    ? ROT_AXIS[def.id] ?? def.axis : def.axis),
                 min: def.min,
                 ticks: {
                     color: text,

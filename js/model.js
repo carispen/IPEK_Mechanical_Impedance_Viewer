@@ -4,16 +4,15 @@
 
 // Calculate the mechanical impedance of the four-mass oscillator model
 // for the selected push force, grip force, and excitation direction.
-// `v2` is the squared excitation velocity |v|² per frequency, needed for the VPA.
-function callModelData(Fp, Fg, canvasId, excitation, betas, v2){
+// `freq` are the measured frequencies of the direction; `v2` is the squared excitation
+// velocity |v|² per frequency, needed for the VPA.
+function callModelData(Fp, Fg, canvasId, freq, betas, v2){
     const dataField = getDataField(canvasId);
     // Without |v|² in the data the model VPA cannot be computed; the curve is left out.
-    if (dataField === "VPA" && !v2) return { x: [], y: [] };
+    if ((dataField === "VPA" || dataField === "ajw") && !v2) return { x: [], y: [] };
     const x = [];
     const y = [];
 
-    const maxFreq = getMaxFreq(excitation);
-    const freq = buildFrequencyArray(maxFreq);
     const w = freq.map(f => 2*Math.PI*f);
 
     // Evaluate the force-dependent mass, damping, and stiffness parameters.
@@ -47,6 +46,10 @@ function callModelData(Fp, Fg, canvasId, excitation, betas, v2){
         // VPA = Re(Z) * |v|², as in plotMIVPAResultsMatrix_Fp_glModel.m (abs as in its plot)
         if(dataField === "VPA"){
             y.push(Math.abs(Zmod[f].re * v2[f]));
+        }
+        // The excitation acceleration behind that |v|²: RMS of |ajw| over the direction's rows
+        if(dataField === "ajw"){
+            y.push(Math.sqrt(v2[f]) * w[f]);
         }
         x.push(freq[f]);
     }

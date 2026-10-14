@@ -42,26 +42,30 @@ async function computeCurve(group, c, structural = false) {
     const rev = ++c.rev;
     if (structural) setStatus("Loading data…");
 
-    const [all, subjectFile] = await Promise.all([loadJson(dirFiles[c.cond.dir]), loadJson(SUBJECTS_URL)]);
+    // Only the files needed are loaded: one subject, or all subjects for "All Subjects"
+    // and the model (force ranges and |v|² over the whole direction)
+    const subjects = await loadSubjectList(c.cond.dir);
+    let subject = c.cond.subject;
+    if (!isMod && subject !== "ALL" && !subjects.includes(Number(subject))) subject = String(subjects[0]);
+    const [rows, subjectFile, betas] = await Promise.all([
+        loadRows(c.cond.dir, isMod || subject === "ALL" ? subjects : [Number(subject)]),
+        loadJson(SUBJECTS_URL),
+        isMod ? loadBetas(c.cond.dir) : null
+    ]);
     subjectData = subjectFile.subjects;
-    const betas = isMod ? await loadBetas(c.cond.dir) : null;
-    const v2 = isMod ? meanV2(all) : null;
+    const v2 = isMod ? meanV2(rows) : null;
     if (rev !== c.rev || !c.el) return;     // a newer change superseded this one
 
-    const subjects = subjectsOf(all);
-    if (!isMod && c.cond.subject !== "ALL" && !subjects.includes(Number(c.cond.subject))) {
-        c.cond.subject = String(subjects[0]);
-    }
-    const rows = isMod ? all : subjectRows(all, c.cond.subject);
+    c.cond.subject = subject;
     if (structural) {
         syncConditionControls(c, subjects, rows);
         setStatus("");
     }
 
-    const { dir, subject, Fp, Fg } = c.cond;
+    const { dir, Fp, Fg } = c.cond;
     CHART_DEFS.filter(d => d.group === group).forEach(d => {
-        c.data[d.id] = !isMod ? selectMat(rows, Fp, Fg, d.id, dir, c.prc)
-            : callModelData(Number(Fp), Number(Fg), d.id, dir, betas, v2);
+        c.data[d.id] = !isMod ? selectMat(rows, Fp, Fg, d.id, c.prc)
+            : callModelData(Number(Fp), Number(Fg), d.id, rows[0].freq, betas, v2);
     });
 
     const proband = isMod ? "Model" : subjectLabel(subject);

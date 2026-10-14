@@ -26,8 +26,7 @@ jobs:
           cp style.css public/
           cp *.png public/
           cp -r js public/
-          mkdir -p public/data
-          cp data/*.json public/data/
+          cp -r data public/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

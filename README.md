@@ -31,7 +31,7 @@ The code is split into plain scripts (no modules, no bundler). They share one gl
 | `js/state.js` | Global state (`charts`, `plots`), data file URLs (`dirFiles`), chart definitions (`CHART_DEFS`), JSON loading with caching |
 | `js/app.js` | Chart tab switching, model coefficient files (`MODEL_FILES`), regression vector `buildX`, subject/force-range helpers, model images, `initializeApp` |
 | `js/curves.js` | Curve cards: create, remove, toggle, recompute and render the curve list, plot options, side cards, and the `DOMContentLoaded` entry point |
-| `js/charts.js` | Chart redraws and resizing, frequency arrays, interpolation of measured data for arbitrary Fg/Fp (`selectMat`), Chart.js datasets and options |
+| `js/charts.js` | Chart redraws and resizing, interpolation of measured data for arbitrary Fg/Fp (`selectMat`), Chart.js datasets and options |
 | `js/model.js` | Four-mass oscillator: force-dependent m/d/k parameters, complex linear solve, impedance over frequency |
 | `js/shell.js` | Page shell: views, theme toggle, status line, chart PNG export, `initShell` |
 
@@ -46,7 +46,31 @@ A small inline script in `<head>` applies the stored theme and sidebar state bef
 
 ## Data source
 
-All data is loaded from the relative path `data/...` (`dirFiles` in `js/state.js`, `MODEL_FILES` in `js/app.js`). GitHub Pages serves it together with the page, so the data always matches the deployed code, and changes to `data/` take effect locally as soon as the page is reloaded. GitHub Pages compresses `.json` in transit, so the files are stored uncompressed. The `resultsMatrix_TX.json.gz` and `resultsMatrix_RX.json.gz` files contain the same data as the `.json` files and are no longer used.
+All data is loaded from the relative path `data/...` (`DIR_CODES` and the loaders in `js/state.js`, `MODEL_FILES` in `js/app.js`). GitHub Pages serves it together with the page, so the data always matches the deployed code, and changes to `data/` take effect locally as soon as the page is reloaded. GitHub Pages compresses `.json` in transit, so the files are stored uncompressed.
+
+### Measurement data
+
+Each excitation direction has a folder `data/TX/` … `data/RZ/` with one file per subject, so the page only loads what a curve needs: one subject, or all subjects of the direction for "All Subjects" and for the model (force ranges and excitation velocity).
+
+```
+data/RX/index.json   {"subjects":[1,2,3,…]}
+data/RX/S10.json     {"SubjectNumber":10,"direction":"RX","freq":[10,…,100],
+                      "rows":[{"TargetPushForce":30,"TargetGripForce":65,
+                               "MeanPushForce":…,"MeanGripForce":…,"MaxPushForce":…,"MaxGripForce":…,
+                               "MIre":[…],"MIim":[…],"ajwRe":[…],"ajwIm":[…],"VPA":[…]}, …]}
+```
+
+One row is one measurement (repetitions are kept, the percentile band needs them). `freq` holds the measured frequencies in Hz; all subjects of a direction share them. MI and the excitation acceleration `ajw` are stored as raw complex values (real and imaginary part, JSON has no complex numbers). The page computes |MI|, the phase `atan2(im, re)` (as MATLAB `angle`) and the squared excitation velocity |ajw|²/ω² for the model VPA when it loads a file (`subjectRowsOf` in `js/state.js`).
+
+The files are exported from the MATLAB `resultsMatrix` structs (`data_matlab/`, not in the repository), once per direction:
+
+```matlab
+addpath('tools');
+load('data_matlab/resultsMatrix_RX.mat');
+exportResultsJson(resultsMatrix, 'RX', 'data');
+```
+
+The export copies the values unchanged (only the usable entry `MI(:, forceDir, accDir)` and `VPA(:, forceDir, accDir)` of each measurement). The `.mat` files are the reference: an export is correct if it matches them exactly.
 
 ### Model data
 
@@ -58,13 +82,13 @@ Each excitation direction has one model file, `data/model_TX.json` … `data/mod
 
 ### Subject data
 
-The anthropometric data of all subjects (sex, age, body and hand measures) lives in `data/subjects.json`, keyed by `SubjectNumber`, which links each subject to its rows in the `resultsMatrix_*.json` files. It is generated from the subject overview workbook (`260417_Probandenübersicht.xlsx`), the authoritative source for this data:
+The anthropometric data of all subjects (sex, age, body and hand measures) lives in `data/subjects.json`, keyed by `SubjectNumber`, which links each subject to its measurement file `data/<direction>/S<nn>.json`. It is generated from the subject overview workbook (`260417_Probandenübersicht.xlsx`), the authoritative source for this data:
 
 ```
 python tools/subjects_to_json.py [workbook.xlsx]
 ```
 
-The script copies the values unchanged and stops if the workbook's columns were moved or renamed. Regenerate the file after every change to the workbook. The `resultsMatrix_*.json` files still contain older anthropometric columns, which the page ignores; where they differ from the workbook, the workbook is correct. Max push and grip forces are per measurement and still come from the `resultsMatrix_*.json` rows.
+The script copies the values unchanged and stops if the workbook's columns were moved or renamed. Regenerate the file after every change to the workbook. Max push and grip forces are per measurement and come from the measurement files.
 
 ### Data integrity
 
@@ -82,4 +106,4 @@ Then open http://localhost:8000.
 
 ## Deploying
 
-Push to `main`. The workflow `.github/workflows/deploy.yml` copies `index.html`, `style.css`, `*.png`, `js/` and `data/*.json` into the published site; files not listed there (PDFs, MATLAB scripts, `.gz` files, the workbook, `tools/`) are not published. When adding a new file type the page needs, add it to that workflow.
+Push to `main`. The workflow `.github/workflows/deploy.yml` copies `index.html`, `style.css`, `*.png`, `js/` and `data/` into the published site; files not listed there (PDFs, MATLAB scripts and data, the workbook, `tools/`) are not published. When adding a new file type the page needs, add it to that workflow.

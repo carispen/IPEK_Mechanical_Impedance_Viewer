@@ -28,6 +28,9 @@ function switchChart(group, canvasId, btn = null) {
     // VPA has no phase
     document.querySelectorAll(".phase-block")
         .forEach(el => el.hidden = canvasId === "chartVPA");
+    // ...but shows the excitation acceleration it is computed from
+    document.querySelectorAll(".ajw-block")
+        .forEach(el => el.hidden = canvasId !== "chartVPA");
 }
 
 // Model file per excitation direction (one MATLAB globalModel each): the force-dependent
@@ -85,11 +88,6 @@ function extractSubjectMeta(resultsMatrix, selectedSubject) {
     // A subject missing from subjects.json shows "–" instead of a made-up value
     ANTHRO_FIELDS.forEach(f => meta[f] = people.length ? math.mean(people.map(p => num(p[f]))) : "–");
     return meta;
-}
-
-// Rows of one subject, or all rows for "ALL"
-function subjectRows(rows, subject) {
-    return subject === "ALL" ? rows : rows.filter(r => r.SubjectNumber === Number(subject));
 }
 
 function subjectsOf(rows) {
@@ -160,7 +158,7 @@ async function initializeApp() {
     requestAnimationFrame(() => {
         requestAnimationFrame(() => {
             renderAllCharts();
-            ["chartMI","chartPhase","chartVPA"].forEach(observeChartContainer);
+            ["chartMI","chartPhase","chartVPA","chartAjw"].forEach(observeChartContainer);
         });
     });
 }
