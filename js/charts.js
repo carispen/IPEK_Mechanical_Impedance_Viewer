@@ -149,6 +149,7 @@ function renderChart(def) {
     ];
     const options = chartOptions(def, plot.opts);
     const chart = charts[def.id];
+    showMissing(def);
 
     if (chart) {
         chart.data.datasets = datasets;
@@ -160,6 +161,22 @@ function renderChart(def) {
     const created = new Chart(canvas, { type: "line", data: { datasets }, options });
     canvas.addEventListener("dblclick", () => created.resetZoom());
     return created;
+}
+
+// Pill on the chart naming visible measured curves without data at their forces
+// (not every subject was measured at every force combination)
+function showMissing(def) {
+    const canvas = document.getElementById(def.id);
+    let pill = canvas.nextElementSibling;
+    if (!pill?.classList.contains("no-data")) {
+        pill = document.createElement("div");
+        pill.className = "no-data";
+        pill.setAttribute("role", "status");
+        canvas.after(pill);
+    }
+    const missing = plot.curves.filter(c => c.visible && c.shown?.type === "measured" && !c.data[def.id]?.x.length);
+    pill.hidden = missing.length === 0;
+    pill.textContent = `No measurement data for ${missing.map(c => `${curveName(c)} (${c.short})`).join(", ")}`;
 }
 
 function curveDataset(c, def) {
