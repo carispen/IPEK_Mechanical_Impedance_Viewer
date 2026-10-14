@@ -1,1938 +1,443 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IPEK Impedance Viewer</title>
+    <meta name="description" content="Measured and model-based mechanical impedance of the hand–arm system under varying grip and push forces.">
+    <script>
+        // Apply the stored theme (else the OS setting) before first paint to avoid a flash
+        { let t = null; try { t = localStorage.getItem("ipek.theme"); } catch {}
+          document.documentElement.dataset.theme = t || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"); }
+        // Same for the collapsed sidebar
+        try { if (localStorage.getItem("ipek.side") === "closed") document.documentElement.dataset.side = "closed"; } catch {}
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&display=swap">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjs@11/lib/browser/math.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/pako@2/dist/pako.min.js"></script>
 </head>
 <body>
-    <!-- Page header and project information -->
-    <header class="site-header">
-        <div class="header-left">
-            <h1>Mechanical Impedance Viewer for the Hand-Arm System</h1>
-            <p>
-                Visualization of measurement data and force-dependent hand–arm
-                models for predicting mechanical impedance under varying grip
-                and push forces.
-            </p>
-        </div>
-        <div class="header-right">
-            <img src="./logo_ipek.png" alt="IPEK Logo">
-            <img src="./logo_kit.png" alt="KIT Logo">
-        </div>
-    </header>
-    <!-- Application workflow overview -->
-    <div class="wizard">
-        <div class="step active">
-            <span class="step-number">1</span>
-            <span class="step-label">Conditions</span>
-        </div>
-        <div class="step active">
-            <span class="step-number">2</span>
-            <span class="step-label">Interpolated Data</span>
-        </div>
-        <div class="step active">
-            <span class="step-number">3</span>
-            <span class="step-label">Model Data</span>
-        </div>
-        <div class="step active">
-            <span class="step-number">4</span>
-            <span class="step-label">Parameters</span>
-        </div>
-    </div>
-    <!-- Introduction and terminology -->
-    <div class="intro-section">
-        <div class="box">
-            <div class="card-title">
-                Introduction and Terminology
-            </div>
-            <p>
-                This application visualizes measured and model-based mechanical
-                impedance data, together with the corresponding phase angle of the hand–arm
-                system, under different grip and push force conditions.
-            </p>
-            <p>
-                The interaction with this website is as follows: <br>
-                &#9312; <b>Conditions:</b> For the measured data, the subject can be selected, along with the excitation direction of the induced vibration 
-                and the push and grip forces. For the model-based data, the same conditions can be set, except for the choice of subject. <br>
-                &#9313; <b>Interpolated Data:</b> The second section displays the resulting plots for the selected subject, grip force, and push force. 
-                In total, there are three plots: mechanical impedance, phase, and vibration power absorption. A comparison of different conditions can be performed by selecting the checkbox 
-                "Compare second curve" below the plots and adjusting the constraints from &#9312;. <br>
-                &#9314; <b>Model Data:</b> Similar to &#9313;, this section contains the plots of the mechanical impedance and its phase for the conditions 
-                defined in &#9312;. <br>
-                &#9315; <b>Parameters:</b> The parameters shown in this section depend on whether measured or model-based data is considered. 
-                For the measured data, the anthropometric information of the selected subject is displayed. 
-                For the model-based data, the structure of the selected hand–arm model and the corresponding component values are shown.
-            <table class="term-table">
-                <thead>
-                    <tr>
-                        <th>Term</th>
-                        <th>Description</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Mechanical Impedance (MI)</td>
-                        <td>
-                            Mechanical Impedance is the frequency-dependent resistance of the hand–arm system to vibration. 
-                            It is defined as the ratio between the dynamic force F(ω) applied at the hand contact surface and the resulting 
-                            vibration velocity v(ω) of the hand:
-                            Z<sub>h</sub>(ω)= F(ω)/v(ω)
-	                        where ω is the vibration frequency in radians per second. A higher mechanical impedance indicates that more 
-                            force is required to produce a given vibration velocity. For more detailed information, refer to ISO 10068:2012.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Vibration Power Absorption (VPA)</td>
-                        <td>
-                            Vibration power absorption describes the amount of vibration energy absorbed by the hand–arm system during excitation. 
-                            It is calculated from the mechanical impedance and represents the power dissipated by the hand–arm system as a function of 
-                            vibration frequency. The frequency dependence of VPA is described in ISO 10068:2012.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Push Force</td>
-                        <td>
-                            Push force is the static force applied by the operator's palm to the vibrating surface during a pushing action. 
-                            It describes how strongly the operator presses against the surface with the hand. For more detailed information, 
-                            refer to ISO 15230-1.
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>Grip Force</td>
-                        <td>
-                            Grip force is the static force applied by the fingers when holding a handle. 
-                            It describes how strongly the operator grips the handle and is balanced by opposing forces within the hand. 
-                            For more detailed information, refer to ISO 15230-1.
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <a class="skip-link" href="#main">Skip to content</a>
+
     <!-- ======================================================================
-     Measured data
+     Header: logos, view tabs, panel and theme toggles
      ====================================================================== -->
-    <section class="data-section">
-    <h2 class="section-heading">
-        Measured Data
-    </h2>
-    <div class="dashboard">
-        <!-- Data selection -->
-        <div class="panel left-panel">
-        <div class="box">
-            <div class="card-title">
-                <span class="card-number">1</span>
-                Data Selection -  Interpolated Data
-                <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        In this section subjects from the proband study and excitation direction can be selected and the force constraints set.
-                    </span>
-                </span>
-            </div>
-            <div class="selection-group">                                          
-                <div class="control-group">
-                    <label for="dataMAT">Data Set</label>
-                    <select id="dataMAT"></select>
-                </div>
-                <div class="control-group">
-                    <label for="anregung">Excitation Direction</label>
-                    <select id="anregung">
-                        <option value="translatorischZ">translational z&#8341</option>
-                        <option value="translatorischY">translational y&#8341</option>
-                        <option value="translatorischX">translational x&#8341</option>
-                        <option value="rotatorischZ">rotational z&#8341</option>
-                        <option value="rotatorischY">rotational y&#8341</option>
-                        <option value="rotatorischX">rotational x&#8341</option>
-                    </select>
-                </div>
-            </div>
-            <div class="coordinate-wrapper">
-                <img src="HAS_ISO10068_transparent.png"
-                    alt="Coordinate system">
-            </div>
-            <div class="slider-group">
-                <div class="slider-header">
-                    <label>Push Force F<sub>p</sub> [N]</label>
-                    <input id="valAK" type="text">
-                </div>
-                <input id="andk" type="range" step="0.01" list="AKmarkers" />
-                <datalist id="AKmarkers"></datalist>
-            </div>
-            <div class="slider-group">
-                <div class="slider-header">
-                    <label>Grip Force F<sub>g</sub> [N]</label>
-                    <input id="valGK" type="text">
-                </div>
-                <input id="greifk" type="range" step="0.01" list="GKmarkers" />
-                <datalist id="GKmarkers"></datalist>
-            </div>
+    <header class="topbar">
+        <div class="brand-logos">
+            <img src="./logo_ipek.png" alt="IPEK – Institute of Product Engineering">
+            <img src="./logo_kit.png" alt="KIT – Karlsruhe Institute of Technology">
         </div>
-        </div>
-        <!-- Measurement results -->
-        <div class="center-panel">
-            <div class="chart-card">
-            <div class="card-title">
-                <span class="card-number">2</span>
-                Results from subject study
-                <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        This section shows experimentally measured impedance data for selected subjects and force settings. To compare a second curve press the button beneath the chart.
-                    </span>
-                </span>
+        <p class="app-name">
+            Mechanical Impedance Viewer
+            <small>Hand–arm system · ISO 10068</small>
+        </p>
+        <nav class="tabs" id="nav" aria-label="Views">
+            <button type="button" data-go="intro">Introduction</button>
+            <button type="button" data-go="measured">Impedance data</button>
+        </nav>
+        <span id="status" role="status" aria-live="polite"></span>
+        <button type="button" class="icon-btn" id="sideBtn" data-tab="measured" aria-controls="sidebar" aria-expanded="true" title="Hide plot setup">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg>
+            <span class="visually-hidden">Plot setup panel</span>
+        </button>
+        <button type="button" class="icon-btn" id="themeBtn" aria-pressed="false" title="Dark theme">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+            <span class="visually-hidden">Dark theme</span>
+        </button>
+    </header>
+
+    <!-- ======================================================================
+     Side panel (collapsible, data view only): the curve controls (step 1)
+     ====================================================================== -->
+    <aside class="sidebar" id="sidebar" data-tab="measured" aria-labelledby="panelTitle">
+        <p class="panel-title" id="panelTitle">Plot setup</p>
+
+        <!-- Curves; each one is measured or model data with its own conditions -->
+        <section class="controls" data-pc="measured" aria-labelledby="ctlMeasTitle">
+            <div class="pc-head">
+                <h2 class="side-title" id="ctlMeasTitle"><span class="card-number">1</span>Curves</h2>
+                <button type="button" class="pc-add">+ Add curve</button>
             </div>
-                <div class="tab-header">
-                    <button id="btnMI" class="active"
-                        onclick="switchChart('top','chartMI',this)">
-                        Magnitude of MI
-                    </button>
-                    <button
-                        onclick="switchChart('top','chartVPA',this)">
-                        Vibration Power Absorption
-                    </button>
+            <p class="hint">Expand a curve to set its conditions and style. The cards on the right follow the highlighted curve.</p>
+            <ul class="pc-list" aria-label="Curves"></ul>
+            <figure class="plate coordinate">
+                <img src="HAS_ISO10068_transparent.png" alt="Coordinate system of the hand according to ISO 10068: x, y and z axes at the handle">
+            </figure>
+        </section>
+    </aside>
+
+    <main id="main" tabindex="-1">
+        <h1 class="visually-hidden" id="pageTitle">Impedance data</h1>
+
+        <!-- ==================================================================
+         Introduction and terminology
+         ================================================================== -->
+        <section class="view" data-tab="intro" aria-labelledby="pageTitle" hidden>
+            <article class="card prose">
+                <h2 class="card-title">Introduction and terminology</h2>
+                <p>
+                    This application visualizes measured and model-based mechanical impedance data,
+                    together with the corresponding phase angle of the hand–arm system, under different
+                    grip and push force conditions.
+                </p>
+                <ol class="steps">
+                    <li><b>Conditions:</b> set in the sidebar. For the measured data, the subject can be selected,
+                        along with the excitation direction of the induced vibration and the push and grip forces.
+                        Each curve is either measured data or model data; model curves have no choice of subject.</li>
+                    <li><b>Interpolated data:</b> the <i>Impedance data</i> view shows the resulting plots for the selected
+                        subject, grip force and push force: mechanical impedance, phase and vibration power absorption.
+                        To compare conditions, use <i>Add curve</i> in the side panel. Each curve expands to its own conditions and style (color, line, marker), and several curves can be open at once.</li>
+                    <li><b>Model data:</b> set a curve's type to <i>Model</i> to plot the mechanical impedance and phase
+                        of the four-mass oscillator model, alongside measured curves if wanted. The model VPA is shown when the data set provides the excitation velocity.</li>
+                    <li><b>Parameters:</b> for the measured data, the anthropometric information of the selected subject
+                        is shown. For the model-based data, the structure of the hand–arm model and its component values are shown.</li>
+                </ol>
+                <div class="table-wrap">
+                    <table class="term-table">
+                        <caption class="visually-hidden">Terminology</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Term</th>
+                                <th scope="col">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th scope="row">Mechanical Impedance (MI)</th>
+                                <td>
+                                    Mechanical impedance is the frequency-dependent resistance of the hand–arm system to vibration.
+                                    It is defined as the ratio between the dynamic force F(ω) applied at the hand contact surface and
+                                    the resulting vibration velocity v(ω) of the hand:
+                                    <span class="formula">Z<sub>h</sub>(ω) = F(ω) / v(ω)</span>
+                                    where ω is the vibration frequency in radians per second. A higher mechanical impedance indicates
+                                    that more force is required to produce a given vibration velocity. For more detailed information,
+                                    refer to ISO 10068:2012.
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Vibration Power Absorption (VPA)</th>
+                                <td>
+                                    Vibration power absorption describes the amount of vibration energy absorbed by the hand–arm system
+                                    during excitation. It is calculated from the mechanical impedance and represents the power dissipated
+                                    by the hand–arm system as a function of vibration frequency. The frequency dependence of VPA is
+                                    described in ISO 10068:2012.
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Push Force</th>
+                                <td>
+                                    Push force is the static force applied by the operator's palm to the vibrating surface during a
+                                    pushing action. It describes how strongly the operator presses against the surface with the hand.
+                                    For more detailed information, refer to ISO 15230-1.
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row">Grip Force</th>
+                                <td>
+                                    Grip force is the static force applied by the fingers when holding a handle. It describes how
+                                    strongly the operator grips the handle and is balanced by opposing forces within the hand.
+                                    For more detailed information, refer to ISO 15230-1.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="chart-area">
-                    <div class="chart-container">
-                        <canvas id="chartMI" class="chart-panel top-chart active"></canvas>
-                        <canvas id="chartVPA" class="chart-panel top-chart"></canvas>
+            </article>
+        </section>
+
+        <!-- ==================================================================
+         Measured data
+         ================================================================== -->
+        <section class="view" data-tab="measured" aria-labelledby="pageTitle">
+            <p class="lead">
+                Measured impedance data (interpolated between the measured force levels) and impedance
+                computed with the force-dependent four-mass oscillator model. Each curve can show either.
+            </p>
+            <div class="view-grid">
+                <div class="col-main">
+                    <!-- Measurement results -->
+                    <article class="card chart-card">
+                        <div class="chart-head">
+                            <h2 class="card-title"><span class="card-number">2</span>Results</h2>
+                            <div class="tab-header" role="tablist" aria-label="Upper chart">
+                                <button id="btnMI" type="button" role="tab" aria-selected="true" aria-controls="chartMI" class="active"
+                                    onclick="switchChart('top','chartMI',this)">
+                                    Magnitude of MI
+                                </button>
+                                <button type="button" role="tab" aria-selected="false" aria-controls="chartVPA"
+                                    onclick="switchChart('top','chartVPA',this)">
+                                    Vibration Power Absorption
+                                </button>
+                            </div>
+                            <button type="button" class="dl-btn" data-chart="top" aria-label="Download upper chart as PNG">PNG</button>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartMI" class="chart-panel top-chart active" role="img" aria-label="Magnitude of mechanical impedance over frequency"></canvas>
+                            <canvas id="chartVPA" class="chart-panel top-chart" role="img" aria-label="Vibration power absorption over frequency"></canvas>
+                        </div>
+                        <div class="chart-head phase-block">
+                            <h3 class="chart-label">Phase angle of MI</h3>
+                            <button type="button" class="dl-btn" data-chart="chartPhase" aria-label="Download phase chart as PNG">PNG</button>
+                        </div>
+                        <div class="chart-container phase-block">
+                            <canvas id="chartPhase" class="chart-panel" role="img" aria-label="Phase angle of mechanical impedance over frequency"></canvas>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="splitter" id="splitter" role="separator" aria-orientation="vertical" aria-label="Resize parameter cards" tabindex="0" title="Drag to resize (double-click to reset)"></div>
+
+                <div class="col-side">
+                    <!-- Anthropometric data -->
+                    <article class="card" data-for="measured">
+                        <h2 class="card-title"><span class="card-number">4</span>Anthropometric data</h2>
+                        <p class="selected-subject" id="selectedSubject"></p>
+                        <dl class="param-list">
+                            <div class="param-row"><dt>Sex</dt><dd id="gender" class="param-value"></dd></div>
+                            <div class="param-row"><dt>Hand weight [g]</dt><dd id="handWeight" class="param-value"></dd></div>
+                            <div class="param-row"><dt>Body weight [kg]</dt><dd id="bodyWeight" class="param-value"></dd></div>
+                            <div class="param-row"><dt>Body height [mm]</dt><dd id="bodyHeight" class="param-value"></dd></div>
+                            <div class="param-row"><dt>Front reach [mm]</dt><dd id="FrontReach" class="param-value"></dd></div>
+                        </dl>
+                        <details class="more">
+                            <summary>Additional parameters</summary>
+                            <dl class="param-list">
+                                <div class="param-row"><dt>Elbow to wrist length [mm]</dt><dd id="ElbowToWristLength" class="param-value"></dd></div>
+                                <div class="param-row"><dt>Thumb length [mm]</dt><dd id="thumbLength" class="param-value"></dd></div>
+                                <div class="param-row"><dt>Hand length [mm]</dt><dd id="handLength" class="param-value"></dd></div>
+                                <div class="param-row"><dt>Palm length [mm]</dt><dd id="palmLength" class="param-value"></dd></div>
+                                <div class="param-row"><dt>Palm width [mm]</dt><dd id="palmWidth" class="param-value"></dd></div>
+                                <div class="param-row"><dt>Forearm circumference [mm]</dt><dd id="forearmCircumference" class="param-value"></dd></div>
+                                <div class="param-row"><dt>Arm circumference [mm]</dt><dd id="armCircumference" class="param-value"></dd></div>
+                            </dl>
+                        </details>
+                    </article>
+
+                    <article class="card info" data-for="measured">
+                        <h2 class="card-title">What does this plot show?</h2>
+                        <p>The curve shows the mechanical impedance of the hand–arm system as a function of frequency.</p>
+                        <p>Higher values indicate a greater dynamic resistance to the applied excitation.</p>
+                        <p>Changes in grip force and push force shift the curves and may influence resonance regions.</p>
+                    </article>
+
+                    <!-- Model parameters -->
+                    <article class="card" data-for="model" hidden>
+                        <h2 class="card-title"><span class="card-number">4</span>Model parameters</h2>
+                        <table class="param-table">
+                            <caption class="visually-hidden">Masses, damping and stiffness coefficients of the four-mass model</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col"><span class="visually-hidden">Index</span></th>
+                                    <th scope="col" id="hdrM">m <small>[g]</small></th>
+                                    <th scope="col" id="hdrC">c <small>[Ns/m]</small></th>
+                                    <th scope="col" id="hdrK">k <small>[N/m]</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th scope="row">1</th>
+                                    <td id="m1" class="param-value"></td>
+                                    <td id="c1" class="param-value"></td>
+                                    <td id="k1" class="param-value"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">2</th>
+                                    <td id="m2" class="param-value"></td>
+                                    <td id="c2" class="param-value"></td>
+                                    <td id="k2" class="param-value"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">3</th>
+                                    <td id="m3" class="param-value"></td>
+                                    <td id="c3" class="param-value"></td>
+                                    <td id="k3" class="param-value"></td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">4</th>
+                                    <td id="m4" class="param-value"></td>
+                                    <td id="c4" class="param-value"></td>
+                                    <td id="k4" class="param-value"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </article>
+
+                    <!-- Four-mass oscillator representation -->
+                    <article class="card" data-for="model" hidden>
+                        <h2 class="card-title"><span class="card-number">4</span>Four-mass oscillator model</h2>
+                        <div class="model-figures">
+                            <figure class="plate">
+                                <img id="modelImage" src="Viermassenschwinger.png" alt="Four-mass oscillator model of the hand–arm system">
+                            </figure>
+                            <figure class="plate">
+                                <img id="modelImageSym" src="symbole_transl.png" alt="Legend of the model symbols">
+                            </figure>
+                        </div>
+                    </article>
+
+                    <article class="card info" data-for="model" hidden>
+                        <h2 class="card-title">What do the parameters mean?</h2>
+                        <p>The hand–arm system is represented as a four-mass oscillator model.</p>
+                        <p>The masses, damping and stiffness coefficients describe the dynamic behaviour of the system for the selected excitation direction and force combination.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- One expandable card per curve: header row plus its own conditions and style -->
+    <template id="curveTpl">
+        <li class="curve">
+            <div class="curve-head">
+                <button type="button" class="curve-expand" aria-expanded="false">
+                    <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+                </button>
+                <button type="button" class="curve-select">
+                    <span class="curve-swatch"></span>
+                    <span class="pc-text"><b class="curve-name"></b><small class="curve-short"></small></span>
+                </button>
+                <button type="button" class="pc-icon" data-act="toggle"></button>
+                <button type="button" class="pc-icon" data-act="remove">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+                </button>
+            </div>
+            <div class="curve-body" hidden>
+                <details class="more pc-details" open>
+                    <summary>Conditions</summary>
+                    <div class="pc-cond">
+                        <label class="pc-field">Type
+                            <select data-c="type">
+                                <option value="measured">Measurement</option>
+                                <option value="model">Model</option>
+                            </select>
+                        </label>
+                        <label class="pc-field" data-only="measured">Data set
+                            <select data-c="subject"></select>
+                        </label>
+                        <label class="pc-field">Excitation direction
+                            <select data-c="dir">
+                                <option value="translatorischZ">translational z&#8341;</option>
+                                <option value="translatorischY">translational y&#8341;</option>
+                                <option value="translatorischX">translational x&#8341;</option>
+                                <option value="rotatorischZ">rotational z&#8341;</option>
+                                <option value="rotatorischY">rotational y&#8341;</option>
+                                <option value="rotatorischX">rotational x&#8341;</option>
+                            </select>
+                        </label>
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="pc-label">Push force F<sub>p</sub></span>
+                                <span class="num-field">
+                                    <input type="number" data-c="Fp" step="any" inputmode="decimal" aria-label="Push force in newtons">
+                                    <span aria-hidden="true">N</span>
+                                </span>
+                            </div>
+                            <input type="range" data-c="Fp" step="0.01" aria-label="Push force">
+                            <datalist data-c="Fp"></datalist>
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header">
+                                <span class="pc-label">Grip force F<sub>g</sub></span>
+                                <span class="num-field">
+                                    <input type="number" data-c="Fg" step="any" inputmode="decimal" aria-label="Grip force in newtons">
+                                    <span aria-hidden="true">N</span>
+                                </span>
+                            </div>
+                            <input type="range" data-c="Fg" step="0.01" aria-label="Grip force">
+                            <datalist data-c="Fg"></datalist>
+                        </div>
                     </div>
-                    <div class="chart-label">
-                        Phase Angle of MI
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="chartPhase" class="chart-panel"></canvas>
-                    </div>
-                    <div class="chart-controls">
-                        <label class="compare-toggle">
-                            <input type="checkbox" id="compareData">
-                            <span>Compare second curve</span>
+                </details>
+                <details class="more pc-details">
+                    <summary>Style</summary>
+                    <div class="pc-fields">
+                        <label class="pc-field pc-wide">Name
+                            <input type="text" data-k="name" placeholder="Auto (from conditions)">
+                        </label>
+                        <label class="pc-field">Color
+                            <input type="color" data-k="color">
+                        </label>
+                        <label class="pc-field">Width
+                            <select data-k="width">
+                                <option value="1">1</option>
+                                <option value="1.5">1.5</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </label>
+                        <label class="pc-field">Line
+                            <select data-k="dash">
+                                <option value="none">None</option>
+                                <option value="solid">Solid</option>
+                                <option value="dashed">Dashed</option>
+                                <option value="dotted">Dotted</option>
+                            </select>
+                        </label>
+                        <label class="pc-field">Marker
+                            <select data-k="marker">
+                                <option value="circle">Circle</option>
+                                <option value="triangle">Triangle</option>
+                                <option value="rect">Square</option>
+                                <option value="rectRot">Diamond</option>
+                                <option value="crossRot">Cross</option>
+                                <option value="star">Star</option>
+                                <option value="none">None</option>
+                            </select>
+                        </label>
+                        <label class="compare-toggle pc-wide" data-only="measured">
+                            <input type="checkbox" data-k="band" role="switch">
+                            <span>Percentile band</span>
+                        </label>
+                        <label class="pc-field" data-only="measured">Lower (0 = min)
+                            <input type="number" data-prc="0" min="0" max="1" step="0.01" inputmode="decimal">
+                        </label>
+                        <label class="pc-field" data-only="measured">Upper (1 = max)
+                            <input type="number" data-prc="1" min="0" max="1" step="0.01" inputmode="decimal">
                         </label>
                     </div>
-                    <div class="info-box">
-                        <h4>What does this plot show?</h4>
-                        <p>
-                            The curve shows the mechanical impedance of the
-                            hand–arm system as a function of frequency.
-                        </p>
-                        <p>
-                            Higher values indicate a greater dynamic resistance
-                            to the applied excitation.
-                        </p>
-                        <p>
-                            Changes in grip force and push force shift the curves
-                            and may influence resonance regions.
-                        </p>
-                    </div>
-                </div>
+                </details>
             </div>
-        </div>
-        <!-- Anthropometric data -->
-        <div class="panel right-panel">
-        <div class="box">
-            <div class="card-title">
-                <span class="card-number">4</span>
-                Anthropometric Data
-                <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        All the necessary proband data is listed here. For additional parameters press the button.
-                    </span>
-                </span>
-            </div>
-            <div class="proband-info-box">
-            <div class="selected-subject" id="selectedSubject">
-                Subject Number 1
-            </div>
-            <div class="param-proband">
-                <div class="param-proband-row">
-                    <span>Sex</span>
-                    <span id="gender" class="param-value"></span>
-                </div>
-                <div class="param-proband-row">
-                    <span>Hand Weight [g]</span>
-                    <span id="handWeight" class="param-value"></span>
-                </div>
-                <div class="param-proband-row">
-                    <span>Body Weight [kg]</span>
-                    <span id="bodyWeight" class="param-value"></span>
-                </div>
-                <div class="param-proband-row">
-                    <span>Body Height [mm]</span>
-                    <span id="bodyHeight" class="param-value"></span>
-                </div>
-                <div class="param-proband-row">
-                    <span>Front Reach [mm]</span>
-                    <span id="FrontReach" class="param-value"></span>
-                </div>
-            </div>
-            </div>
-            <button class="details-toggle" onclick="toggleAnthroDetails()">
-                Show additional parameters ▼
-            </button>
-            <div id="anthroDetails" class="hidden-details">
-            <div class="proband-info-box">
-                <div class="param-proband">
-                    <div class="param-proband-row">
-                        <span>Elbow to Wrist Length [mm]</span>
-                        <span id="ElbowToWristLength" class="param-value"></span>
-                    </div>
-                    <div class="param-proband-row">
-                        <span>Thumb Length [mm]</span>
-                        <span id="thumbLength" class="param-value"></span>
-                    </div>
-                    <div class="param-proband-row">
-                        <span>Hand Length [mm]</span>
-                        <span id="handLength" class="param-value"></span>
-                    </div>
-                    <div class="param-proband-row">
-                        <span>Palm Length [mm]</span>
-                        <span id="palmLength" class="param-value"></span>
-                    </div>
-                    <div class="param-proband-row">
-                        <span>Palm Width [mm]</span>
-                        <span id="palmWidth" class="param-value"></span>
-                    </div>
-                    <div class="param-proband-row">
-                        <span>Forearm Circumference [mm]</span>
-                        <span id="forearmCircumference" class="param-value"></span>
-                    </div>
-                    <div class="param-proband-row">
-                        <span>Arm Circumference [mm]</span>
-                        <span id="armCircumference" class="param-value"></span>
-                    </div>
-                </div>
-            </div>
-            </div>
-            </div>
-        </div>
-        </div>
-    </section>
-    <!-- ======================================================================
-     Model-based data
-     ====================================================================== -->
-    <section class="data-section">
-    <h2 class="section-heading">
-        Model-Based Data
-    </h2>
-    <div class="dashboard">
-        <!-- Model input selection -->
-        <div class="panel left-panel">
-        <div class="box">
-            <div class="card-title">
-                <span class="card-number">1</span>
-                Data Selection - Model Data
-                <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        In this section the excitation direction can be selected and the force constraints set.
-                    </span>
-                </span>
-            </div>
-            <div class="selection-group">                                          
-                <div class="control-group">
-                    <label for="dataMAT_Mod">Data Set</label>
-                    <select id="dataMAT_Mod">
-                        <option value="allProbands">All Subjects</option>
+        </li>
+    </template>
+
+    <!-- Plot options per view -->
+    <template id="optsTpl">
+        <details class="more pc-details pc-opts">
+            <summary>Plot options</summary>
+            <div class="pc-fields">
+                <label class="pc-field">Legend
+                    <select data-o="legend">
+                        <option value="top">Top</option>
+                        <option value="bottom">Bottom</option>
+                        <option value="right">Right</option>
+                        <option value="chartArea">Inside plot</option>
+                        <option value="none">Hidden</option>
                     </select>
-                </div>
-                <div class="control-group">
-                    <label for="anregung_Mod">Excitation Direction</label>
-                    <select id="anregung_Mod">
-                        <option value="translatorischZ">translational z&#8341</option>
-                        <option value="translatorischY">translational y&#8341</option>
-                        <option value="translatorischX">translational x&#8341</option>
-                        <option value="rotatorischZ">rotational z&#8341</option>
-                        <option value="rotatorischY">rotational y&#8341</option>
-                        <option value="rotatorischX">rotational x&#8341</option>
+                </label>
+                <label class="pc-field">Frequency axis
+                    <select data-o="xScale">
+                        <option value="logarithmic">Log</option>
+                        <option value="linear">Linear</option>
                     </select>
-                </div>
+                </label>
+                <label class="compare-toggle pc-wide">
+                    <input type="checkbox" data-o="grid" role="switch">
+                    <span>Grid lines</span>
+                </label>
             </div>
-            <div class="coordinate-wrapper">
-                <img src="HAS_ISO10068_transparent.png"
-                    alt="Coordinate system">
-            </div>
-            <div class="slider-group">
-                <div class="slider-header">
-                    <label>Push Force F<sub>p</sub> [N]</label>
-                    <input id="valAK_Mod" type="text">
-                </div>
-                <input id="andk_Mod" type="range" step="0.01" list="AKmarkers_Mod" />
-                <datalist id="AKmarkers_Mod"></datalist>
-            </div>
-            <div class="slider-group">
-                <div class="slider-header">
-                    <label>Grip Force F<sub>g</sub> [N]</label>
-                    <input id="valGK_Mod" type="text">
-                </div>
-                <input id="greifk_Mod" type="range" step="0.01" list="GKmarkers_Mod" />
-                <datalist id="GKmarkers_Mod"></datalist>
-            </div>
-        </div>
-        </div>
-        <div class="center-panel center-panel-bottom">
-            <!-- Model results -->
-            <div class="chart-card">
-            <div class="card-title">
-                <span class="card-number">3</span>
-                Results from Hand-Arm-Model
-                <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        This section shows model-based impedance data for selected subjects and force settings. To compare a second curve press the button beneath the chart.
-                    </span>
-                </span>
-            </div>
-                <div class="chart-label">
-                    Magnitude of MI
-                </div>
-                <div class="chart-container-mod">
-                    <canvas id="chartMI_Mod" class="mod-chart active"></canvas>
-                </div>
-                <div class="chart-label">
-                    Phase Angle of MI
-                </div>
-                <div class="chart-container-mod">
-                    <canvas id="chartPhase_Mod" class="mod-chart active"></canvas>
-                </div>
-                <div class="chart-controls">
-                    <label class="compare-toggle">
-                        <input type="checkbox" id="compareData_Mod">
-                        <span>Compare second curve</span>
-                    </label>
-                </div>
-            </div>
-            <!-- Four-mass oscillator representation -->
-            <div class="box">
-            <div class="card-title">
-                <span class="card-number">4</span>
-                Four-mass oscillator model
-                <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        This section contains the structure and components of the model used to compute the data in the "results from hand-arm-model" section.
-                    </span>
-                </span>
-            </div>
-            <div class="imag-4mkd">
-                    <img id="modelImage"
-                        src="Viermassenschwinger.png"
-                        alt="Model visualization">
-            </div>
-            <div class="imag-4mkd">
-                    <img id="modelImageSym"
-                        src="symbole_transl.png"
-                        alt="Model symbols">
-            </div>
-            <div class="info-box model-info-box">
-                <h4>What do the parameters mean?</h4>
-                <p>
-                    The hand–arm system is represented as a
-                    four-mass oscillator model.
-                </p>
-                <p>
-                    The masses, damping and stiffness
-                    coefficients describe the dynamic behaviour of the
-                    system for the selected excitation direction
-                    and force combination.
-                </p>
-            </div>
-            </div>
-        </div>
-        <!-- Model parameters -->
-        <div class="panel right-panel">
-        <div class="box">
-        <div class="card-title">
-            <span class="card-number">4</span>
-            Model Parameters
-            <span class="info-tooltip">
-                    ⓘ
-                    <span class="info-tooltip-text ">
-                        The values of the model parameters mass, damping and stiffness coefficients are displayed here.
-                    </span>
-                </span>
-        </div>
-            <div class="parameter-groups">
-                <div class="param-section">
-                    <h4>Masses [kg]</h4>
-                    <div class="param-row span">
-                        <span>m<sub>1</sub></span>
-                        <span id="m1" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>m<sub>2</sub></span>
-                        <span id="m2" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>m<sub>3</sub></span>
-                        <span id="m3" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>m<sub>4</sub></span>
-                        <span id="m4" class="param-value"></span>
-                    </div>
-                </div>
-                <div class="param-section">
-                    <h4>Damping [Ns/m]</h4>
-                    <div class="param-row">
-                        <span>d<sub>1</sub></span>
-                        <span id="d1" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>d<sub>2</sub></span>
-                        <span id="d2" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>d<sub>3</sub></span>
-                        <span id="d3" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>d<sub>4</sub></span>
-                        <span id="d4" class="param-value"></span>
-                    </div>
-                </div>
-                <div class="param-section">
-                    <h4>Stiffness [N/m]</h4>
-                    <div class="param-row">
-                        <span>k<sub>1</sub></span>
-                        <span id="k1" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>k<sub>2</sub></span>
-                        <span id="k2" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>k<sub>3</sub></span>
-                        <span id="k3" class="param-value"></span>
-                    </div>
-                    <div class="param-row">
-                        <span>k<sub>4</sub></span>
-                        <span id="k4" class="param-value"></span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        </div>
-    </div>
-    </section>
-    <script>
-        // ============================================================================
-        // Application state and data sources
-        // ============================================================================
-
-        const DOM = {};
-        const charts = {
-            chart1: null,
-            chart2: null,
-            chart3: null,
-            chart4: null,
-            chart5: null,
-            chart6: null
-        };
-        const dirFiles = {
-            translatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TY.json",
-            translatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TZ.json",
-            translatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_TX.json.gz",
-            rotatorischX: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RX.json.gz",
-            rotatorischY: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RY.json",
-            rotatorischZ: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/resultsMatrix_RZ.json"
-        };
-        const dimAnr = {
-            translatorischZ: 2,
-            translatorischY: 1,
-            translatorischX: 0,
-            rotatorischZ: 2,
-            rotatorischY: 1,
-            rotatorischX: 0
-        };
-                
-        let newResMat, mechImpe, newResMat_Mod, mechImpe_Mod;
-        let activeLine = 0;
-        let showSecondLegend = false;
-        let activeLine_Mod = 0;
-        let showSecondLegend_Mod = false;
-
-        let storedData = {
-            MI: [null,null],
-            Phase: [null,null],
-            VPA: [null,null],
-            MI_Mod: [null,null],
-            Phase_Mod: [null,null],
-            VPA_Mod: [null,null]
-        };
-        let m_beta, d_beta, k_beta;
-        let rangeFp, rangeFp_Mod;
-        let rangeFg, rangeFg_Mod;
-        let isLoading = false;
-
-        let dimSelected = dimAnr.translatorischZ;
-        let dimSelected_Mod = dimAnr.translatorischZ;
-
-        // ============================================================================
-        // DOM initialization
-        // ============================================================================
-
-        function initDOM() {
-            DOM.sliderAK = document.getElementById("andk");
-            DOM.inputAK = document.getElementById("valAK");
-            DOM.sliderGK = document.getElementById("greifk");
-            DOM.inputGK = document.getElementById("valGK");
-
-            DOM.sliderAK_Mod = document.getElementById("andk_Mod");
-            DOM.inputAK_Mod = document.getElementById("valAK_Mod");
-            DOM.sliderGK_Mod = document.getElementById("greifk_Mod");
-            DOM.inputGK_Mod = document.getElementById("valGK_Mod");
-
-            DOM.selectData = document.getElementById("dataMAT");
-            DOM.selectDataMod = document.getElementById("dataMAT_Mod");
-
-            DOM.selectDir = document.getElementById("anregung");
-            DOM.selectDirMod = document.getElementById("anregung_Mod");
-
-            DOM.compare = document.getElementById("compareData");
-            DOM.compareMod = document.getElementById("compareData_Mod");
-
-            Object.entries(DOM).forEach(([key, el]) => {
-                if (!el) {
-                    console.error("Missing DOM element:", key);
-                }
-            });
-        }
-
-        // ============================================================================
-        // Data loading and preprocessing
-        // ============================================================================
-
-        // Cache frequency arrays to avoid rebuilding identical frequency vectors
-        const frequencyCache = {};
-
-        // Load a JSON data file and decompress it when the source is gzip-compressed
-        async function loadJson(url) {
-            const response = await fetch(url, {
-                cache: "no-cache"
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-            }
-
-            const buffer = await response.arrayBuffer();
-
-            if (url.endsWith(".gz")) {
-                // Decompress gzip data before parsing the JSON content
-                const decompressed = pako.inflate(
-                    new Uint8Array(buffer), 
-                    { to: "string" }
-                );
-                return JSON.parse(decompressed);
-            }
-            return JSON.parse(new TextDecoder().decode(buffer));
-        }
-
-        // ============================================================================
-        // Chart handling and visualization
-        // ============================================================================
-
-        // Show the selected chart and hide the other charts in the same chart group
-        function switchChart(group, canvasId, btn = null) {
-
-            if (btn) {
-                btn.parentElement
-                    .querySelectorAll("button")
-                    .forEach(b => b.classList.remove("active"));
-
-                btn.classList.add("active");
-            }
-
-            const selector =
-                group === "top"
-                    ? ".top-chart"
-                    : ".mod-chart";
-
-            document.querySelectorAll(selector)
-                .forEach(c => c.classList.remove("active"));
-
-            document.getElementById(canvasId)
-                .classList.add("active");
-        }
-
-        // Model coefficient files grouped by excitation direction.
-        // Each direction provides the force-dependent mass, damping, and stiffness matrices.
-        const MODEL_DEFS = {
-            translatorischX: {
-                betaFiles: {
-                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TX.json",
-                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TX.json",
-                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TX.json"
-                },
-            },
-            translatorischY: {
-                betaFiles: {
-                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TY.json",
-                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TY.json",
-                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TY.json"
-                },
-            },
-            translatorischZ: {
-                betaFiles: {
-                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_TZ.json",
-                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_TZ.json",
-                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_TZ.json"
-                },
-            },
-            rotatorischX: {
-                betaFiles: {
-                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RX.json",
-                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RX.json",
-                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RX.json"
-                },
-            },
-            rotatorischY: {
-                betaFiles: {
-                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RY.json",
-                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RY.json",
-                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RY.json"
-                },
-            },
-            rotatorischZ: {
-                betaFiles: {
-                    m: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/m_beta_Matrix_RZ.json",
-                    d: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/d_beta_Matrix_RZ.json",
-                    k: "https://cdn.jsdelivr.net/gh/carispen/IPEK_Mechanical_Impedance_Viewer@main/data/k_beta_Matrix_RZ.json"
-                },
-            }
-        };
-
-        // Build the regression vector used by the force-dependent model:
-        // [1, Fg, Fp, Fg * Fp]
-        function buildX( Fg, Fp){
-
-            return[
-                1,
-                Fg,
-                Fp,
-                Fg * Fp
-            ];
-        }
-
-        function toggleAnthroDetails() {
-
-            const details =
-                document.getElementById("anthroDetails");
-
-            const button =
-                document.querySelector(".details-toggle");
-
-            details.classList.toggle("open");
-
-            button.textContent =
-                details.classList.contains("open")
-                    ? "Hide additional parameters ▲"
-                    : "Show additional parameters ▼";
-        }
-
-        // Load the model coefficient matrices for the selected excitation direction
-        // The three files are loaded in parallel because they are independent
-        async function loadModelMatrices() {
-            const dirKey = document.getElementById("anregung_Mod").value;
-            const def = MODEL_DEFS[dirKey];
-
-            const [m, d, k] = await Promise.all([
-                loadJson(def.betaFiles.m),
-                loadJson(def.betaFiles.d),
-                loadJson(def.betaFiles.k)
-            ]);
-
-            m_beta = m;
-            d_beta = d;
-            k_beta = k;
-        }
-
-        function num(v, fallback = 0) {
-            const n = Number(v);
-            return Number.isFinite(n) ? n : fallback;
-        }
-
-        // Extract anthropometric information and the available force limits
-        // for the currently selected subject or for all subjects
-        function extractSubjectMeta(resultsMatrix) {
-            if (!resultsMatrix || resultsMatrix.length === 0) return null;
-
-            //const gender = num(resultsMatrix[0].gender, 1);
-
-            // Check whether "All Subjects" is selected
-            // Display "mixed" when all subjects are selected; otherwise use the
-            // gender information stored for the selected subject
-            const selectedSubject = document.getElementById("dataMAT").value;
-
-            let genderText = "unknown";
-
-            if (selectedSubject === "ALL") {
-                genderText = "mixed";
-            } else {
-                const gender = num(resultsMatrix[0].gender, 1);
-
-                if (gender === 1) {
-                    genderText = "male";
-                } else if (gender === 2) {
-                    genderText = "female";
-                }
-            }
-
-            return {
-                gender: genderText,
-                maxFg: Math.max(...resultsMatrix.map(x => num(x.MaxGripForce)).filter(Number.isFinite)),
-                maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite)),
-
-                handWeight: math.mean(resultsMatrix.map(x => num(x.handWeight))),
-                bodyWeight: math.mean(resultsMatrix.map(x => num(x.bodyWeight))),
-                bodyHeight: math.mean(resultsMatrix.map(x => num(x.bodyHeight))),
-                FrontReach: math.mean(resultsMatrix.map(x => num(x.FrontReach))),
-                ElbowToWristLength: math.mean(resultsMatrix.map(x => num(x.ElbowToWristLength))),
-                thumbLength: math.mean(resultsMatrix.map(x => num(x.thumbLength))),
-                handLength: math.mean(resultsMatrix.map(x => num(x.handLength))),
-                palmLength: math.mean(resultsMatrix.map(x => num(x.palmLength))),
-                palmWidth: math.mean(resultsMatrix.map(x => num(x.palmWidth))),
-                forearmCircumference: math.mean(resultsMatrix.map(x => num(x.forearmCircumference))),
-                armCircumference: math.mean(resultsMatrix.map(x => num(x.armCircumference)))
-            };
-        }
-
-        async function loadDirection() {
-            const key = document.getElementById("anregung").value;
-            newResMat = await loadJson(dirFiles[key]);
-            const key_Mod = document.getElementById("anregung_Mod").value;
-            newResMat_Mod = await loadJson(dirFiles[key_Mod]);
-        }
-
-        // Select the measurement data for the chosen subject and update the
-        // available push-force and grip-force ranges for both data sets
-        function selectProband() {
-            const chosenProb = document.getElementById("dataMAT").value;
-            //const chosenProb_Mod = document.getElementById("dataMAT_Mod").value; // to be added, if model for seperate subjects exists
-
-            // "ALL" keeps the complete measurement matrix; otherwise filter by subject number.
-            mechImpe = (chosenProb === "ALL")
-                ? newResMat
-                : newResMat.filter(r => r.SubjectNumber === Number(chosenProb));
-
-            mechImpe_Mod = newResMat_Mod;    
-            /* mechImpe_Mod = (chosenProb_Mod === "ALL")
-                ? newResMat_Mod
-                : newResMat_Mod.filter(r => r.SubjectNumber === Number(chosenProb_Mod)); */
-
-            const subjectLabel =
-                document.getElementById("selectedSubject");
-
-            subjectLabel.textContent =
-                chosenProb === "ALL"
-                    ? "All Subjects"
-                    : `Subject Number ${chosenProb}`;
-
-            // Compute ranges for selected probands
-            const ranges = computeForceRangesForProband(mechImpe);
-            rangeFp = ranges.rangeFp;
-            rangeFg = ranges.rangeFg;
-
-            const ranges_Mod = computeForceRangesForProband(mechImpe_Mod);
-            rangeFp_Mod = ranges_Mod.rangeFp;
-            rangeFg_Mod = ranges_Mod.rangeFg;
-
-            if (!rangeFp.length || !rangeFg.length) {
-                console.error("Force ranges are empty for selected proband");
-                return;
-            }
-
-            setupSliders();
-        }
-
-        function getScalar(v) {
-            return Array.isArray(v) ? v[0] : v;
-        }
-
-        function populateProbandDropdown(resultsMatrix, selectId) {
-            const select = document.getElementById(selectId);
-            select.innerHTML = "";
-
-            if (!resultsMatrix || resultsMatrix.length === 0) return;
-
-            const subjects = [...new Set(
-                resultsMatrix
-                    .map(r => r.SubjectNumber)
-                    .filter(v => Number.isFinite(v))
-            )].sort((a, b) => a - b);
-
-            const allOpt = document.createElement("option");
-            allOpt.value = "ALL";
-            allOpt.textContent = "All Subjects";
-            select.appendChild(allOpt);
-
-            subjects.forEach(subject => {
-                const opt = document.createElement("option");
-                opt.value = subject;
-                opt.textContent = `Subject Number ${subject}`;
-                select.appendChild(opt);
-            });
-
-            select.value = subjects[0];
-        }
-
-        // Return all unique numeric force values available in the selected data
-        function getUnionRange(matrix, field) {
-            return [...new Set(
-                matrix
-                    .filter(r => r?.[field] != null)
-                    .map(r => getScalar(r[field]))
-            )].sort((a, b) => a - b);
-        }
-
-        // Determine the available push-force and grip-force values for a data set
-        function computeForceRangesForProband(resultsMatrix, isModChart = false) { //
-            if (!resultsMatrix || resultsMatrix.length === 0) {
-                return { rangeFp: [], rangeFg: [] };
-            }
-
-            const rangeFp = getUnionRange(resultsMatrix, "TargetPushForce").filter(Number.isFinite);
-            const rangeFg = getUnionRange(resultsMatrix, "TargetGripForce").filter(Number.isFinite);
-
-            return { rangeFp, rangeFg };
-        }
-
-        // Configure the force sliders using the minimum and maximum values available
-        // in the selected data set and generate six equally spaced tick labels
-        function setupSliders() {
-            const numTicks = 6;
-
-            const minValFp = Math.min(...rangeFp);
-            const maxValFp = Math.max(...rangeFp);
-
-            const minValFp_Mod = Math.min(...rangeFp_Mod);
-            const maxValFp_Mod = Math.max(...rangeFp_Mod);
-
-            const stepFp = (maxValFp - minValFp) / (numTicks - 1);
-            const stepFp_Mod = (maxValFp_Mod - minValFp_Mod) / (numTicks - 1);
-
-            const ticksFp = Array.from({ length: numTicks }, (_, i) =>
-                Math.round(minValFp + i * stepFp)
-            );
-
-            const ticksFp_Mod = Array.from({ length: numTicks }, (_, i) =>
-                Math.round(minValFp_Mod + i * stepFp_Mod)
-            );
-
-            setupSlider(DOM.sliderAK, DOM.inputAK, minValFp, maxValFp, ticksFp, "AKmarkers");
-            setupSlider(DOM.sliderAK_Mod, DOM.inputAK_Mod, minValFp_Mod, maxValFp_Mod, ticksFp_Mod, "AKmarkers_Mod");
-
-            // Configure grip-force slider
-            const minValFg = Math.min(...rangeFg);
-            const maxValFg = Math.max(...rangeFg);
-
-            const minValFg_Mod = Math.min(...rangeFg_Mod);
-            const maxValFg_Mod = Math.max(...rangeFg_Mod);
-
-            const stepFg = (maxValFg - minValFg) / (numTicks - 1);
-            const stepFg_Mod = (maxValFg_Mod - minValFg_Mod) / (numTicks - 1);
-
-            const ticksFg = Array.from({ length: numTicks }, (_, i) =>
-                Math.round(minValFg + i * stepFg)
-            );
-
-            const ticksFg_Mod = Array.from({ length: numTicks }, (_, i) =>
-                Math.round(minValFg_Mod + i * stepFg_Mod)
-            );
-
-            setupSlider(DOM.sliderGK, DOM.inputGK, minValFg, maxValFg, ticksFg, "GKmarkers");
-            setupSlider(DOM.sliderGK_Mod, DOM.inputGK_Mod, minValFg_Mod, maxValFg_Mod, ticksFg_Mod, "GKmarkers_Mod");
-        }
-
-        // Connect a range slider with its numeric input field and update the charts
-        // whenever the selected force value changes
-        function setupSlider(slider, input, min, max, ticks, datalistId) {
-
-            if (!slider || !input) {
-                console.error("Slider/input missing:", datalistId);
-                return;
-            }
-
-            slider.min = min;
-            slider.max = max;
-            slider.value = min;
-            input.value = min;
-
-            // Keep the slider and text field synchronized
-            const datalist = document.getElementById(datalistId);
-            if (!datalist) return;
-
-            datalist.innerHTML = "";
-
-            ticks.forEach(v => {
-                const opt = document.createElement("option");
-                opt.value = v;
-                opt.label = v.toString();
-                datalist.appendChild(opt);
-            });
-
-            const clamp = v => Math.min(max, Math.max(min, v));
-
-            slider.oninput = () => {
-                input.value = slider.value;
-                updateUI();
-                debouncedChartUpdate();
-            };
-
-            input.onchange = () => {
-                let v = Number(input.value);
-                if (Number.isNaN(v)) return;
-
-                // Clamp manually entered values to the valid force range
-                v = Math.min(max, Math.max(min, v));
-
-                slider.value = v;
-                input.value = v;
-
-                updateUI();
-                debouncedChartUpdate();
-            };
-        }
-
-        // Update the model illustrations to match the selected excitation type
-        function updateModelImage() {
-            const excitation = document.getElementById("anregung_Mod").value;
-            const img = document.getElementById("modelImage");
-            const imgSym = document.getElementById("modelImageSym");
-
-            if (excitation.startsWith("translatorisch")) {
-                // Use the translational model illustrations
-                img.src = "Viermassenschwinger.png";
-                imgSym.src = "symbole_transl.png";
-            } else if (excitation.startsWith("rotatorisch")) {
-                // Use the rotational model illustrations
-                img.src = "Viermassenschwinger_rotat.png";
-                imgSym.src = "symbole_rotat.png";
-            }
-
-        }
-
-        // Initialize the application in the order required by the data dependencies:
-        // load data, populate controls, load model coefficients, update the UI,
-        // create the charts, and finally attach resize observers.
-        async function initializeApp() {
-            await loadDirection();
-            populateProbandDropdown(newResMat, "dataMAT");
-            //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
-            selectProband(); 
-            await loadModelMatrices();
-            updateModelImage();
-            updateUI();
-            updateAllCharts();
-            requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    updateAllCharts();
-                    ["chartMI","chartPhase","chartVPA","chartMI_Mod","chartPhase_Mod"]
-                        .forEach(observeChartContainer);
-                });
-            });
-        }
-
-        // ============================================================================
-        // Chart updates and responsive resizing
-        // ============================================================================
-
-        // Delay repeated chart updates while the user is continuously changing a control
-        function debounce(func, delay) {
-            let timeoutId;
-            return function(...args) {
-                clearTimeout(timeoutId);
-                timeoutId = setTimeout(() => func(...args), delay);
-            };
-        }
-
-        // Register all user-interaction handlers for selections, force controls,
-        // comparison toggles, and excitation-direction changes.
-        function initEventListeners() {
-
-            DOM.compare.onchange = e => {
-                activeLine = e.target.checked ? 1 : 0;
-                showSecondLegend = e.target.checked;
-                updateAllCharts();
-            };
-
-            DOM.compareMod.onchange = e => {
-                activeLine_Mod = e.target.checked ? 1 : 0;
-                showSecondLegend_Mod = e.target.checked;
-                updateAllCharts();
-            };
-
-            DOM.selectData.onchange = async () => {
-                selectProband();
-                updateUI();
-                updateAllCharts();
-            };
-
-            DOM.selectDataMod.onchange = async () => {
-                selectProband();
-                updateUI();
-                updateAllCharts();
-            };
-
-            DOM.selectDir.onchange = async () => {
-                // Reload measurement data because the available data depends on excitation direction.
-                isLoading = true;
-
-                await loadDirection();
-                populateProbandDropdown(newResMat, "dataMAT");
-                selectProband();  // Recalculates ranges for new direction
-                //DOM.compare.checked = false;
-                //activeLine = 0;
-                //showSecondLegend = false;
-                isLoading = false;
-                updateUI();
-                updateAllCharts();
-            };
-
-            DOM.selectDirMod.onchange = async () => {
-                // Reload both model coefficient data and source data for the new excitation direction.
-                isLoading = true;
-
-                await loadDirection();
-                await loadModelMatrices();
-
-                //populateProbandDropdown(newResMat_Mod, "dataMAT_Mod");
-                selectProband();
-                updateModelImage();
-                //DOM.compareMod.checked = false;
-                //activeLine_Mod = 0;
-                //showSecondLegend_Mod = false;
-                isLoading = false;
-                updateUI();
-                updateAllCharts();
-            };
-        }
-
-        // Debounced chart update
-        const debouncedChartUpdate = debounce(updateAllCharts, 150);
-
-        document.addEventListener("DOMContentLoaded", async () => {
-            Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
-            initDOM();
-            await initializeApp();
-            initEventListeners();
-            document.getElementById("chartMI").classList.add("active");
-            document.getElementById("btnMI").classList.add("active");
-
-            function watchDPR() {
-                const mql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-                mql.addEventListener('change', () => {
-                    Chart.defaults.devicePixelRatio = window.devicePixelRatio;
-                    Object.values(charts).forEach(c => c?.resize());
-                    watchDPR(); // re-register for the next change
-                }, { once: true });
-            }
-            watchDPR();
-        });
-                
-        // Recalculate all visible measurement and model charts using the current
-        // subject, excitation direction, and force settings.
-        function updateAllCharts() {
-            if (isLoading) return;
-
-            const excitation = document.getElementById("anregung").value;
-            const dynamicMaxMI = excitation.startsWith("rotatorisch") ? "1" : "800";
-
-            const excitation_Mod = document.getElementById("anregung_Mod").value;
-            const dynamicMaxMI_Mod = excitation_Mod.startsWith("rotatorisch") ? "1" : "800";
-
-            // Measured-data charts
-            charts.chart1 = createChart({
-                canvasId: "chartMI",
-                chartRef: charts.chart1,
-                resultsMatrix: mechImpe,
-                store: storedData.MI,
-                AK: DOM.sliderAK.value,
-                GK: DOM.sliderGK.value,
-                minValue: "0",
-                //maxValue: dynamicMaxMI,
-                axisTitel: "|Z\u2095| in Ns/m",
-                labelPrefix: "Z\u2095"
-                //titel: "Magnitude of Mechanical Impedance"
-            });
-
-            charts.chart2 = createChart({
-                canvasId: "chartPhase",
-                chartRef: charts.chart2,
-                resultsMatrix: mechImpe,
-                store: storedData.Phase,
-                AK: DOM.sliderAK.value,
-                GK: DOM.sliderGK.value,
-                minValue: "-1.0",
-                //maxValue: "3.2",
-                axisTitel: "\u2220Z\u2095 in rad",
-                labelPrefix: "\u2220Z\u2095"
-                //titel: "Phase Angle of Mechanical Impedance"
-            });
-
-            charts.chart3 = createChart({
-                canvasId: "chartVPA",
-                chartRef: charts.chart3,
-                resultsMatrix: mechImpe,
-                store: storedData.VPA,
-                AK: DOM.sliderAK.value,
-                GK: DOM.sliderGK.value,
-                minValue: "0.0",
-                //maxValue: "0.5",
-                axisTitel: "VPA in W",
-                labelPrefix: "VPA"
-                //titel: "Vibration Power Absorption"
-            });
-
-            // Model-based charts
-            charts.chart4 = createChart({
-                canvasId: "chartMI_Mod",
-                chartRef: charts.chart4,
-                resultsMatrix: mechImpe_Mod,
-                store: storedData.MI_Mod,
-                AK: DOM.sliderAK_Mod.value,
-                GK: DOM.sliderGK_Mod.value,
-                minValue: "0",
-                //maxValue: dynamicMaxMI_Mod,
-                axisTitel: "|Z\u2095| in Ns/m",
-                labelPrefix: "Z\u2095"
-                //titel: "Magnitude of Mechanical Impedance"
-            });
-
-            charts.chart5 = createChart({
-                canvasId: "chartPhase_Mod",
-                chartRef: charts.chart5,
-                resultsMatrix: mechImpe_Mod,
-                store: storedData.Phase_Mod,
-                AK: DOM.sliderAK_Mod.value,
-                GK: DOM.sliderGK_Mod.value,
-                minValue: "-1.0",
-                //maxValue: "3.2",
-                axisTitel: "\u2220Z\u2095 in rad",
-                labelPrefix: "\u2220Z\u2095"
-                //titel: "Phase Angle of Mechanical Impedance"
-            });
-        }
-
-        // Watch the chart container for layout changes and let Chart.js recalculate
-        // the canvas dimensions when the container size changes.
-        function observeChartContainer(canvasId) {
-            const container = document.getElementById(canvasId).parentElement;
-            new ResizeObserver(() => {
-                const chart = Object.values(charts).find(
-                    c => c?.canvas?.id === canvasId
-                );
-                if (chart) {
-                    chart.resize();
-                }
-            }).observe(container);
-        }
-
-        // Map each chart canvas to the corresponding data field in the source data.
-        function getDataField(canvasId) {
-            switch (canvasId) {
-                case "chartMI":        return "MI";
-                case "chartPhase":     return "Phase";
-                case "chartVPA":       return "VPA";
-                case "chartMI_Mod":    return "MI_Mod";
-                case "chartPhase_Mod": return "Phase_Mod";
-                default:
-                    throw new Error("Unknown canvasId: " + canvasId);
-            }
-        }
-
-        function shouldTakeAbs(canvasId) {
-            return canvasId === "chartMI" || canvasId === "chartVPA";
-        }
-
-        // Set the frequency range according to the excitation direction and the
-        // frequency range available for that measurement.
-        function getMaxFreq(excitation) {
-            if (excitation.startsWith("rotatorisch")) {
-                return 100;
-            }
-            if (excitation === "translatorischY") {
-                return 100;
-            }
-            return 500;
-        }
-
-        // Define the default maximum y-axis value for mechanical impedance charts.
-        // Non-MI charts use automatic y-axis scaling.
-        function getMaxY(canvasId, excitation) {
-            // Only affect MI charts
-            if (canvasId === "chartMI" || canvasId === "chartMI_Mod") {
-                if (excitation.startsWith("rotatorisch")) {
-                    return "1";
-                } else {
-                    return "800";
-                }
-            }
-            return null; // Return null for non-MI charts
-        }
-
-        // Generate and cache the frequency values used for charting.
-        // The same frequency vector is reused for all charts with the same maximum frequency.
-        function buildFrequencyArray(maxFreq) {
-            const cacheKey = `freq_${maxFreq}`;
-            if (frequencyCache[cacheKey]) {
-                return frequencyCache[cacheKey];
-            }
-            
-            const freq = [];
-            for (let f = 10; f <= maxFreq; f += 5) {
-                freq.push(f);
-            }
-            frequencyCache[cacheKey] = freq;
-            return freq;
-        }
-
-        function getLegendContext(isMod = false) {
-            const excitationText = isMod
-                ? document.getElementById("anregung_Mod").selectedOptions[0].text
-                : document.getElementById("anregung").selectedOptions[0].text;
-
-            const probandText = isMod
-                ? document.getElementById("dataMAT_Mod").selectedOptions[0].text
-                : document.getElementById("dataMAT").selectedOptions[0].text;
-
-            return { excitationText, probandText };
-        }
-
-        // ============================================================================
-        // Measurement data interpolation
-        // ============================================================================
-
-        // Select and interpolate measured impedance data for the requested push and
-        // grip forces. Data is processed separately for each subject and then aver
-        function selectMat(resultsMatrix, initFp, initFg, canvasId) {
-            if (!resultsMatrix || resultsMatrix.length === 0) { 
-                return { x: [], y: [] };
-            }
-
-            const dataField = getDataField(canvasId);
-            const x = [];
-            const y = [];
-
-            const excitation = document.getElementById("anregung").value;
-            
-            if (!rangeFp || !rangeFg || rangeFp.length === 0 || rangeFg.length === 0) { 
-                return { x: [], y: [] };
-            }
-
-            const maxFreq = getMaxFreq(excitation);
-            const freq = buildFrequencyArray(maxFreq);
-
-            const initFpNum = Number(initFp);
-            const initFgNum = Number(initFg);
-
-            // Group the measurement rows by subject so that interpolation is performed
-            // independently for each subject.
-            const subjectMap = {};
-            for (const row of resultsMatrix) {
-                const subjectNum = row.SubjectNumber;
-                if (!subjectMap[subjectNum]) {
-                    subjectMap[subjectNum] = [];
-                }
-                subjectMap[subjectNum].push(row);
-            }
-
-            // Process each frequency independently.
-            for (let i = 0; i < freq.length; i++) {
-                const allValues = [];
-
-                // Interpolate separately for each subject using the available force values.
-                for (const subjectNum in subjectMap) {
-                    const subjectData = subjectMap[subjectNum];
-                    const subjectRangeFp = getUnionRange(subjectData, "TargetPushForce").filter(Number.isFinite);
-                    const subjectRangeFg = getUnionRange(subjectData, "TargetGripForce").filter(Number.isFinite);
-                    const minFp = math.min(subjectRangeFp);
-                    const maxFp = math.max(subjectRangeFp);
-                    const minFg = math.min(subjectRangeFg);
-                    const maxFg = math.max(subjectRangeFg);
-
-                    if (subjectRangeFp.length === 0 || subjectRangeFg.length === 0) continue;
-
-                    const valMI = [];
-                    const data_Fg_low_Fp_low = [];
-                    const data_Fg_low_Fp_high = [];
-                    const data_Fg_high_Fp_low = [];
-                    const data_Fg_high_Fp_high = [];
-                    let Fp_low, Fp_high, Fg_low, Fg_high;
-                    let distanceFp_low, distanceFg_low;
-
-                    for (const row of subjectData) {
-                        let value = row[dataField]?.[i];
-                        if (value == null) continue;
-
-                        if (shouldTakeAbs(canvasId)) {
-                            value = math.abs(value);
-                        }
-
-                        const rowFpNum = Number(row.TargetPushForce);
-                        const rowFgNum = Number(row.TargetGripForce);
-
-                        // Use the measured value directly when the requested force combination exists.
-                        if (rowFpNum === initFpNum && rowFgNum === initFgNum) {
-                            valMI.push(value);
-                        }
-                        
-                        if (!subjectRangeFp.includes(initFpNum) || !subjectRangeFg.includes(initFgNum)) {
-                            if (initFpNum <= minFp) {
-                                // Lower boundary: interpolate between the two lowest available push-force values.
-                                Fp_low = minFp;
-                                Fp_high = subjectRangeFp.find(v => v > minFp);
-                            } 
-                            else if (initFpNum >= maxFp) {
-                                // Upper boundary: interpolate between the two highest available push-force values.
-                                Fp_low = subjectRangeFp.filter(v => v < maxFp).at(-1);
-                                Fp_high = maxFp;
-                            } 
-                            else {
-                                // Interior point: find the two surrounding push-force values.
-                                Fp_low = subjectRangeFp.filter(v => v <= initFpNum).at(-1);
-                                Fp_high = subjectRangeFp.find(v => v > initFpNum);
-                            }
-                            if (initFgNum <= minFg) {
-                                // Lower boundary: interpolate between the two lowest available grip-force values.
-                                Fg_low = minFg;
-                                Fg_high = subjectRangeFg.find(v => v > minFg);
-                            } 
-                            else if (initFgNum >= maxFg) {
-                                // Upper boundary: interpolate between the two highest available grip-force values.
-                                Fg_low = subjectRangeFg.filter(v => v < maxFg).at(-1);
-                                Fg_high = maxFg;
-                            } 
-                            else {
-                                // Interior point: find the two surrounding grip-force values.
-                                Fg_low = subjectRangeFg.filter(v => v <= initFgNum).at(-1);
-                                Fg_high = subjectRangeFg.find(v => v > initFgNum);
-                            }
-
-                            if ([Fp_low, Fp_high, Fg_low, Fg_high].some(v => v == null)) {
-                                continue;
-                            }
-                            distanceFp_low = (initFpNum-Fp_low) / (Fp_high - Fp_low);
-                            distanceFg_low = (initFgNum-Fg_low) / (Fg_high - Fg_low);
-                            
-                            if (Number(row.TargetPushForce) == Fp_low  && Number(row.TargetGripForce) == Fg_low)
-                                data_Fg_low_Fp_low.push(value);
-
-                            if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_low)
-                                data_Fg_low_Fp_high.push(value);
-
-                            if (Number(row.TargetPushForce) == Fp_low  && Number(row.TargetGripForce) == Fg_high)
-                                data_Fg_high_Fp_low.push(value);
-
-                            if (Number(row.TargetPushForce) == Fp_high && Number(row.TargetGripForce) == Fg_high)
-                                data_Fg_high_Fp_high.push(value);
-                        }
-                    }
-
-                    // Use exact match if available
-                    if (valMI.length > 0) {
-                        allValues.push(math.mean(valMI));
-                    } else if (data_Fg_low_Fp_low.length > 0 && data_Fg_low_Fp_high.length > 0 && 
-                            data_Fg_high_Fp_low.length > 0 && data_Fg_high_Fp_high.length > 0) {
-
-                        // Store the four surrounding force combinations required for bilinear
-                        // interpolation in push-force and grip-force space.
-                        const data_low_low_med = math.mean(math.abs(data_Fg_low_Fp_low));
-                        const data_low_high_med = math.mean(math.abs(data_Fg_low_Fp_high));
-                        const data_high_low_med = math.mean(math.abs(data_Fg_high_Fp_low));
-                        const data_high_high_med = math.mean(math.abs(data_Fg_high_Fp_high));
-
-                        // First interpolate with respect to grip force, then with respect to push force.
-                        const Mi_inter_Fg_Fphigh = data_low_high_med * (1 - distanceFg_low) + data_high_high_med * distanceFg_low;
-                        const Mi_inter_Fg_Fplow = data_low_low_med * (1 - distanceFg_low) + data_high_low_med * distanceFg_low;
-                        const Mi_inter = Mi_inter_Fg_Fplow * (1 - distanceFp_low) + Mi_inter_Fg_Fphigh * distanceFp_low;
-                        
-                        allValues.push(Mi_inter);
-                    } 
-                }
-
-                // Only add to chart if at least one subject has data
-                if (allValues.length > 0) {
-                    y.push(math.mean(allValues));
-                    x.push(freq[i]);
-                }
-            }
-            return { x, y };
-        }
-
-        // ============================================================================
-        // Measurement data and general chart construction
-        // ============================================================================
-
-        // Create a Chart.js line chart or update an existing chart with the current data.
-        // The same function is used for measured and model-based results.
-        function createChart({canvasId,chartRef,resultsMatrix,store,AK,GK,minValue,axisTitel,labelPrefix}) { // insertargument "maxValue" after minValue if needed to set max y-axis
-            if (!resultsMatrix) return chartRef;
-
-            const isMod = canvasId.includes("_Mod");
-            const currentActiveLine = isMod ? activeLine_Mod : activeLine;
-            const currentShowSecondLegend = isMod ? showSecondLegend_Mod : showSecondLegend;
-
-            const initFp = AK;
-            const initFg = GK;
-
-            // Select the calculation method according to whether this is a model chart.
-            const liveData = isMod
-                ? callModelData(resultsMatrix, Number(initFp), Number(initFg), canvasId)
-                : selectMat(resultsMatrix, initFp, initFg, canvasId);
-
-            const excitation = isMod
-                ? document.getElementById("anregung_Mod").value
-                : document.getElementById("anregung").value;
-
-            const dynamicMaxY = getMaxY(canvasId, excitation);
-            //const finalMaxValue = dynamicMaxY !== null ? dynamicMaxY : maxValue;
-
-            const ctxInfo = getLegendContext(isMod);
-            const newLabel = `${labelPrefix} | ${ctxInfo.excitationText} | ${ctxInfo.probandText} | Fp: ${initFp} Fg: ${initFg}`;
-
-            // Store the current curve so that a second condition can be displayed for comparison.
-            store[currentActiveLine] = {
-                x: liveData.x,
-                y: liveData.y,
-                Fp: initFp,
-                Fg: initFg,
-                label: newLabel // Save the complete legend text together with the stored curve.
-            };
-
-            if (chartRef) {
-                //chartRef.options.scales.y.max = finalMaxValue;
-                chartRef.data.labels = liveData.x;
-
-                chartRef.data.datasets[0].data = store[0]?.y ?? [];
-                chartRef.data.datasets[1].data = store[1]?.y ?? [];
-
-                chartRef.data.datasets[0].label = store[0]?.label ?? labelPrefix;
-                chartRef.data.datasets[1].label = store[1]?.label ?? labelPrefix;
-
-                chartRef.data.datasets[0].hidden = false;
-
-                chartRef.data.datasets[1].hidden = !currentShowSecondLegend;
-
-                chartRef.options.plugins.legend.labels.filter = (legendItem) => {
-                    if (legendItem.datasetIndex === 1 && !currentShowSecondLegend) {
-                        return false;
-                    }
-                    return true;
-                };
-
-                chartRef.update("none");
-                return chartRef;
-            }
-
-            const ctx = document.getElementById(canvasId);
-            return new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: liveData.x,
-                    datasets: [
-                        {
-                            label: store[0]?.label ?? labelPrefix,
-                            data: store[0]?.y ?? [],
-                            showLine: false,
-                            pointRadius: ctx => {
-                                const w = ctx.chart.width;
-                                return Math.max(2, Math.min(5, w / 250));
-                            },
-                            pointHoverRadius: ctx => {
-                                const w = ctx.chart.width;
-                                return Math.max(4, Math.min(8, w / 150));
-                            },
-                            pointStyle: 'circle',
-                            borderColor: '#003A70',
-                            backgroundColor: 'rgba(0,0,0,0)',
-                            pointBorderColor: '#003A70',
-                            pointBackgroundColor: 'rgba(0,0,0,0)',
-                            pointBorderWidth: 1
-                        },
-                        {
-                            llabel: store[1]?.label ?? labelPrefix,
-                            data: store[1]?.y ?? [],
-                            hidden: !currentShowSecondLegend,
-                            showLine: false,
-                            pointRadius: ctx => {
-                                const w = ctx.chart.width;
-                                return Math.max(2, Math.min(5, w / 250));
-                            },
-                            pointHoverRadius: ctx => {
-                                const w = ctx.chart.width;
-                                return Math.max(4, Math.min(8, w / 150));
-                            },
-                            pointStyle: 'circle',
-                            borderColor: '#E05A2B',
-                            backgroundColor: 'rgba(0,0,0,0)',
-                            pointBorderColor: '#E05A2B',
-                            pointBackgroundColor: 'rgba(0,0,0,0)',
-                            pointBorderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            align: 'end',
-                            labels: { 
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                                boxWidth: 4,
-                                boxHeight: 5,
-                                padding: 12,
-                                font: { size: 12 },
-                                filter: (legendItem) => {
-                                    if (legendItem.datasetIndex === 1 && !currentShowSecondLegend) {
-                                        return false;
-                                    }
-                                    return true;
-                                }
-                            }
-                        },
-                        /*title: {
-                            display: true,
-                            text: titel,
-                            padding: { top: 20, bottom: 0 },
-                            font: { size: 14 }
-                        }*/
-                    },
-                    scales: {
-                        x: {
-                            title: { display: true, text: 'Frequency in Hz' },
-                            min: 10,
-                            max: 500,
-                            type: 'logarithmic'
-                        },
-                        y: {
-                            title: { display: true, text: axisTitel },
-                            min: minValue,
-                            //max: finalMaxValue,
-                            ticks: {
-                                callback: value => {
-                                    const v = Number(value);
-                                    return Number.isInteger(v) ? v : v.toFixed(2);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        // ============================================================================
-        // Four-mass oscillator model
-        // ============================================================================
-
-        // Calculate the mechanical impedance of the four-mass oscillator model
-        // for the selected push force, grip force, and excitation direction.
-        function callModelData(resultsMatrix, Fp, Fg, canvasId){
-
-            if (!rangeFp_Mod || !rangeFg_Mod) { 
-                return { x: [], y: [] };
-            }
-
-            const dataField = getDataField(canvasId);
-            const x = [];
-            const y = [];
-
-            const excitation_Mod = document.getElementById("anregung_Mod").value;
-            const maxFreq = getMaxFreq(excitation_Mod);
-            const freq = buildFrequencyArray(maxFreq);
-            const w = freq.map(f => 2*Math.PI*f);
-
-            // Evaluate the force-dependent mass, damping, and stiffness parameters.
-            const m_model = matlabModel(Fg, Fp, m_beta); // add resultsMatrix if needed for Matlab modell
-            const d_model = matlabModel(Fg, Fp, d_beta); // add resultsMatrix if needed for Matlab modell
-            const k_model = matlabModel(Fg, Fp, k_beta); // add resultsMatrix if needed for Matlab modell
-
-            if (!m_model.length || !d_model.length || !k_model.length) {
-                console.warn("Model returned empty vectors");
-                return { x: [], y: [] };
-            }
-
-            // Calculate the complex mechanical impedance of the four-mass model.
-            const {Zmod} = impedance_mkd(
-                m_model,
-                d_model,
-                k_model,
-                w
-            );
-
-            const phase_mod = Zmod.map(z => Math.atan2(z.im, z.re));
-
-            // The impedance chart uses the real part of Z, consistent with the MATLAB implementation.
-            // To display the magnitude |Z| instead, use Math.sqrt(Zmod[f].re**2 + Zmod[f].im**2).
-            for (let f = 0; f < freq.length; f++) {
-                if(dataField === "MI" || dataField === "MI_Mod"){
-                    y.push(Zmod[f].re);
-                }
-                if(dataField === "Phase" || dataField === "Phase_Mod"){
-                    y.push(phase_mod[f]);
-                }
-                x.push(freq[f]);
-            }
-            return { x, y };
-        }
-
-        // Calculate the complex mechanical impedance of the four-mass oscillator.
-        // The mass, damping, and stiffness matrices are assembled first, followed by
-        // the frequency-dependent dynamic stiffness matrix and its complex solution.
-        function impedance_mkd(m, d, k, w) {
-            const n = m.length;
-
-            // Assemble the mass, damping, and stiffness matrices of the lumped-parameter model.
-            const M = zeros(n, n);
-            for (let i = 0; i < n; i++) M[i][i] = m[i];
-
-            const C = zeros(n, n);
-            const K = zeros(n, n);
-
-            for (let i = 0; i < n; i++) {
-                if (i > 0) {
-                    C[i][i - 1] = -d[i - 1];
-                    K[i][i - 1] = -k[i - 1];
-                }
-                if (i < n - 1) {
-                    C[i][i + 1] = -d[i];
-                    K[i][i + 1] = -k[i];
-                }
-                if (i === 0) {
-                    C[i][i] = d[0];
-                    K[i][i] = k[0];
-                } else if (i === n - 1) {
-                    C[i][i] = d[n - 2] + d[n - 1];
-                    K[i][i] = k[n - 2] + k[n - 1];
-                } else {
-                    C[i][i] = d[i - 1] + d[i];
-                    K[i][i] = k[i - 1] + k[i];
-                }
-            }
-
-            // Apply unit excitation force to the first mass.
-            const F = Array(n).fill(null).map(() => ({ re: 1, im: 0 }));
-            F[0] = { re: 1, im: 0 };
-            for (let i = 1; i < n; i++) F[i] = { re: 0, im: 0 };
-
-            // Estimate matrix magnitudes for the numerical regularization used near singular frequencies.
-            const nK = spectralNormApprox(K);
-            const nC = spectralNormApprox(C);
-            const nM = spectralNormApprox(M);
-
-            const tolRcond = 1e-12;
-            const tau = 1e-8;
-
-            const Zmod = [];
-            const Ymod = [];
-
-            // Solve the model independently at each excitation frequency.
-            for (let i = 0; i < w.length; i++) {
-                const wi = w[i];
-
-                // Construct the complex dynamic stiffness matrix:
-                // D = K - ω²M + iωC.
-                let D = zeros(n, n).map((row, r) =>
-                    row.map((_, c) => ({
-                        re: K[r][c] - wi * wi * M[r][c],
-                        im: wi * C[r][c]
-                    }))
-                );
-
-                const rc = rcondComplex(D);
-                // Add a small diagonal regularization when the matrix is close to singular.
-                if (rc < tolRcond) {
-                    const eps = tau * (nK + wi * nC + wi * wi * nM);
-                    for (let j = 0; j < n; j++) {
-                        D[j][j].re += eps;
-                    }
-                }
-
-                const q = solveComplex(D, F);
-
-                // Add a small diagonal regularization when the matrix is close to singular.
-                const v1 = {
-                    re: -wi * q[0].im,
-                    im: wi * q[0].re
-                };
-
-                Ymod.push({ ...v1 });
-                // Mechanical impedance is defined as force divided by velocity.
-                Zmod.push(complexDiv({ re: 1, im: 0 }, v1));
-            }
-
-            return { Zmod, Ymod };
-        }
-
-        function zeros(rows, cols) {
-            return Array(rows).fill(null).map(() => Array(cols).fill(0));
-        }
-
-        // Gershgorin upper bound: max row sum of |entries|.
-        // Tight for diagonally dominant matrices like K and C.
-        // Approximate the matrix norm using the maximum absolute row sum.
-        // This provides an upper bound that is suitable for the regularization scale
-        // used for the diagonally dominant stiffness and damping matrices.
-        function spectralNormApprox(A) {
-            let maxRowSum = 0;
-            for (let r = 0; r < A.length; r++) {
-                let rowSum = 0;
-                for (let c = 0; c < A[r].length; c++) {
-                    rowSum += Math.abs(A[r][c]);
-                }
-                maxRowSum = Math.max(maxRowSum, rowSum);
-            }
-            return maxRowSum;
-        }
-
-        // Estimate the conditioning of a complex matrix from the ratio of the
-        // smallest to largest diagonal magnitudes.
-        function rcondComplex(A) {
-            const n = A.length;
-            let maxDiag = 0;
-            let minDiag = Infinity;
-            for (let i = 0; i < n; i++) {
-                const mag = Math.sqrt(A[i][i].re ** 2 + A[i][i].im ** 2);
-                if (mag > maxDiag) maxDiag = mag;
-                if (mag < minDiag) minDiag = mag;
-            }
-            return maxDiag === 0 ? 0 : minDiag / maxDiag;
-        }
-
-        // Solve a complex linear system using Gaussian elimination with partial pivoting.
-        function solveComplex(A, b) {
-            const n = A.length;
-
-            const M = A.map(row => row.map(c => ({ re: c.re, im: c.im })));
-            const rhs = b.map(c => ({ re: c.re, im: c.im }));
-
-            // Select the row with the largest pivot magnitude to improve numerical stability.
-            for (let col = 0; col < n; col++) {
-                let maxMag = 0;
-                let pivotRow = col;
-                for (let row = col; row < n; row++) {
-                    const mag = M[row][col].re ** 2 + M[row][col].im ** 2;
-                    if (mag > maxMag) {
-                        maxMag = mag;
-                        pivotRow = row;
-                    }
-                }
-
-                [M[col], M[pivotRow]] = [M[pivotRow], M[col]];
-                [rhs[col], rhs[pivotRow]] = [rhs[pivotRow], rhs[col]];
-
-                const pivot = M[col][col];
-
-                // Solve the resulting upper-triangular system by back substitution.
-                for (let row = col + 1; row < n; row++) {
-                    const factor = complexDiv(M[row][col], pivot);
-                    for (let j = col; j < n; j++) {
-                        M[row][j] = complexSub(M[row][j], complexMul(factor, M[col][j]));
-                    }
-                    rhs[row] = complexSub(rhs[row], complexMul(factor, rhs[col]));
-                }
-            }
-
-            const x = Array(n).fill(null).map(() => ({ re: 0, im: 0 }));
-            for (let i = n - 1; i >= 0; i--) {
-                let sum = { re: rhs[i].re, im: rhs[i].im };
-                for (let j = i + 1; j < n; j++) {
-                    sum = complexSub(sum, complexMul(M[i][j], x[j]));
-                }
-                x[i] = complexDiv(sum, M[i][i]);
-            }
-
-            return x;
-        }
-
-        // Complex-number helper functions used by the model solver.
-        function complexMul(a, b) {
-            return {
-                re: a.re * b.re - a.im * b.im,
-                im: a.re * b.im + a.im * b.re
-            };
-        }
-
-        // Complex-number helper functions used by the model solver.
-        function complexDiv(a, b) {
-            const denom = b.re * b.re + b.im * b.im;
-            return {
-                re: (a.re * b.re + a.im * b.im) / denom,
-                im: (a.im * b.re - a.re * b.im) / denom
-            };
-        }
-
-        // Complex-number helper functions used by the model solver.
-        function complexSub(a, b) {
-            return { re: a.re - b.re, im: a.im - b.im };
-        }
-
-        function writeMeta(meta) {
-            if (!meta) return;
-
-            Object.entries(meta).forEach(([key, value]) => {
-                const el = document.getElementById(key);
-                if (!el) return;
-
-                el.textContent =
-                    typeof value === "number"
-                        ? value.toFixed(3)
-                        : value;
-            });
-        }
-
-        function clampPositive(vec, eps = 1e-9) {
-            return vec.map(v => Math.max(v, eps));
-        }
-
-        // Evaluate the force-dependent model coefficients using the regression vector
-        // [1, Fg, Fp, Fg * Fp].
-        // TODO: Include measurement-dependent terms if the model is later extended
-        // to use subject-specific input data, see next two comments.
-        function matlabModel(Fg, Fp, modelMat) { // add resultsMatrix as argument when Matlab model will be dependent on resMat
-            if (!modelMat) return []; //if (!modelMat || !resultsMatrix) return [];
-
-            const X = buildX(Fg, Fp);
-            const result = math.multiply(X, math.transpose(modelMat));
-            return Array.isArray(result) ? result.flat() : [result];
-        }
-
-        function writeVector(prefix, vec) {
-            vec.forEach((v, i) => {
-                document.getElementById(`${prefix}${i + 1}`).textContent =
-                    Number(v).toFixed(3);
-            });
-        }
-
-        // ============================================================================
-        // User interface updates
-        // ============================================================================
-
-        function updateUI() {
-            if (!m_beta || !d_beta || !k_beta) return; // if (!m_beta || !d_beta || !k_beta || !mechImpe_Mod) return; // add if needed for Matlab modell
-
-            const Fg = Number(DOM.sliderGK_Mod?.value);
-            const Fp = Number(DOM.sliderAK_Mod?.value);
-
-            if (Fg == null || Fp == null) return;
-
-            writeVector("m", matlabModel(Fg, Fp, m_beta)); // add mechImpe_Mod if needed for Matlab modell
-            writeVector("k", matlabModel(Fg, Fp, k_beta)); // add mechImpe_Mod if needed for Matlab modell
-            writeVector("d", matlabModel(Fg, Fp, d_beta)); // add mechImpe_Mod if needed for Matlab modell
-
-            const meta = extractSubjectMeta(mechImpe);
-            writeMeta(meta);
-        }
-    </script>
-    </div>
+        </details>
+    </template>
+
+    <script src="js/state.js" defer></script>
+    <script src="js/app.js" defer></script>
+    <script src="js/curves.js" defer></script>
+    <script src="js/charts.js" defer></script>
+    <script src="js/model.js" defer></script>
+    <script src="js/shell.js" defer></script>
 </body>
 </html>
