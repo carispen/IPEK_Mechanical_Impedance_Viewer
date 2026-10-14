@@ -8,9 +8,8 @@ const curveColor = c => c.color || paletteColor(c.slot);
 const curveName = c => c.name || `Curve ${c.id}`;
 
 // New curve: copies the base curve (conditions and data) with the next color and marker.
-function newCurve(group, base) {
-    const P = plots[group];
-    const slot = P.next++;
+function newCurve(base) {
+    const slot = plot.next++;
     return {
         id: slot + 1,
         slot,
@@ -37,7 +36,7 @@ function newCurve(group, base) {
 
 // Load the data a curve depends on, refresh its controls and recompute its chart data.
 // `structural` = direction or subject changed, so the subject list and force ranges are rebuilt.
-async function computeCurve(group, c, structural = false) {
+async function computeCurve(c, structural = false) {
     const isMod = c.cond.type === "model";
     const rev = ++c.rev;
     if (structural) setStatus("Loading data…");
@@ -50,7 +49,7 @@ async function computeCurve(group, c, structural = false) {
     const [rows, subjectFile, betas] = await Promise.all([
         loadRows(c.cond.dir, isMod || subject === "ALL" ? subjects : [Number(subject)]),
         loadJson(SUBJECTS_URL),
-        isMod ? loadBetas(c.cond.dir) : null
+        isMod ? loadJson(`data/model_${DIR_CODES[c.cond.dir]}.json`) : null
     ]);
     subjectData = subjectFile.subjects;
     const v2 = isMod ? meanV2(rows) : null;
@@ -63,9 +62,9 @@ async function computeCurve(group, c, structural = false) {
     }
 
     const { dir, Fp, Fg } = c.cond;
-    CHART_DEFS.filter(d => d.group === group).forEach(d => {
-        c.data[d.id] = !isMod ? selectMat(rows, Fp, Fg, d.id, c.prc)
-            : callModelData(Number(Fp), Number(Fg), d.id, rows[0].freq, betas, v2);
+    CHART_DEFS.forEach(d => {
+        c.data[d.id] = !isMod ? selectMat(rows, Fp, Fg, d, c.prc)
+            : callModelData(Number(Fp), Number(Fg), d.field, rows[0].freq, betas, v2);
     });
 
     const proband = isMod ? "Model" : subjectLabel(subject);
@@ -81,7 +80,7 @@ async function computeCurve(group, c, structural = false) {
     c.shown = { ...c.cond };            // conditions of the data currently drawn
 
     renderAllCharts();
-    if (plots[group].active === c) updateSideCards(group);
+    if (plot.active === c) updateSideCards();
 }
 
 // Rebuild the subject options and slider ranges of a curve card; clamps the forces.
@@ -98,8 +97,8 @@ function syncConditionControls(c, subjects, rows) {
         subjectSel.value = c.cond.subject;
     }
 
-    const ranges = computeForceRangesForProband(rows);
-    [["Fp", ranges.rangeFp], ["Fg", ranges.rangeFg]].forEach(([k, range]) => {
+    [["Fp", "TargetPushForce"], ["Fg", "TargetGripForce"]].forEach(([k, field]) => {
+        const range = getUnionRange(rows, field);
         const min = Math.min(...range);
         const max = Math.max(...range);
         const slider = q(`input[type="range"][data-c="${k}"]`);
@@ -117,40 +116,36 @@ function syncConditionControls(c, subjects, rows) {
 }
 
 // The highlighted curve is the one the side cards describe
-function setActive(group, c) {
-    const P = plots[group];
-    if (P.active === c) return;
-    P.active = c;
+function setActive(c) {
+    if (plot.active === c) return;
+    plot.active = c;
     renderAllCharts();              // MI axis unit follows the active curve
-    updateSideCards(group);
+    updateSideCards();
 }
 
-function toggleCurve(group, index) {
-    const c = plots[group].curves[index];
+function toggleCurve(c) {
     c.visible = !c.visible;
     renderAllCharts();
 }
 
-function addCurve(group) {
-    const P = plots[group];
-    const c = newCurve(group, P.active ?? P.curves.at(-1));
+function addCurve() {
+    const c = newCurve(plot.active ?? plot.curves.at(-1));
     c.open = true;
-    P.curves.push(c);
-    P.active = c;
-    renderCurveList(group);
-    computeCurve(group, c, true).catch(showLoadError);
+    plot.curves.push(c);
+    plot.active = c;
+    renderCurveList();
+    computeCurve(c, true).catch(showLoadError);
     c.el.querySelector(".curve-select").focus();
 }
 
-function removeCurve(group, c) {
-    const P = plots[group];
-    if (P.curves.length < 2) return;
-    P.curves.splice(P.curves.indexOf(c), 1);
+function removeCurve(c) {
+    if (plot.curves.length < 2) return;
+    plot.curves.splice(plot.curves.indexOf(c), 1);
     c.el.remove();
     c.el = null;
-    if (P.active === c) {
-        P.active = P.curves[0];
-        updateSideCards(group);
+    if (plot.active === c) {
+        plot.active = plot.curves[0];
+        updateSideCards();
     }
     renderAllCharts();
 }
@@ -166,28 +161,28 @@ function showLoadError(err) {
 let cardUid = 0;
 
 // Build the card of one curve from the template and wire up its controls.
-function buildCard(group, c) {
+function buildCard(c) {
     const li = document.getElementById("curveTpl").content.firstElementChild.cloneNode(true);
     const q = sel => li.querySelector(sel);
     li.dataset.uid = ++cardUid;
     c.el = li;
 
     // The header selects the curve for the side cards; only the arrow expands it
-    q(".curve-select").onclick = () => setActive(group, c);
+    q(".curve-select").onclick = () => setActive(c);
     q(".curve-expand").onclick = () => {
         c.open = !c.open;
-        renderCurveList(group);
+        renderCurveList();
     };
-    q('[data-act="toggle"]').onclick = () => { c.visible = !c.visible; renderAllCharts(); };
-    q('[data-act="remove"]').onclick = () => removeCurve(group, c);
-    li.addEventListener("focusin", () => setActive(group, c));
+    q('[data-act="toggle"]').onclick = () => toggleCurve(c);
+    q('[data-act="remove"]').onclick = () => removeCurve(c);
+    li.addEventListener("focusin", () => setActive(c));
 
     // Conditions: direction and subject change the data set, forces only the curve
     li.querySelectorAll("select[data-c]").forEach(sel => sel.onchange = () => {
         const k = sel.dataset.c;
         const prev = c.cond[k];
         c.cond[k] = sel.value;
-        computeCurve(group, c, true).catch(err => {
+        computeCurve(c, true).catch(err => {
             // Keep the curve consistent with the data it still shows
             c.cond[k] = sel.value = prev;
             showLoadError(err);
@@ -200,7 +195,7 @@ function buildCard(group, c) {
         const apply = () => {
             c.cond[k] = slider.value;
             clearTimeout(c.timer);
-            c.timer = setTimeout(() => computeCurve(group, c).catch(showLoadError), 80);
+            c.timer = setTimeout(() => computeCurve(c).catch(showLoadError), 80);
         };
         slider.oninput = () => {
             field.value = slider.value;
@@ -233,7 +228,7 @@ function buildCard(group, c) {
             const v = Number(el.value);
             if (el.value !== "" && Number.isFinite(v)) c.prc[i] = Math.min(1, Math.max(0, v));
             el.value = c.prc[i];
-            computeCurve(group, c).catch(showLoadError);
+            computeCurve(c).catch(showLoadError);
         };
     });
     return li;
@@ -264,22 +259,20 @@ const EYE_SVG = hidden => '<svg width="18" height="18" viewBox="0 0 24 24" fill=
 
 // Create missing cards and refresh the card headers. The controls inside a card are
 // never re-rendered, so dragging a slider or typing a name is not interrupted.
-function renderCurveList(group) {
-    const P = plots[group];
-    const list = document.querySelector(`[data-pc="${group}"] .pc-list`);
-    if (!list) return;
+function renderCurveList() {
+    const list = document.querySelector(".pc-list");
 
-    P.curves.forEach(c => {
-        if (!c.el) list.append(buildCard(group, c));
+    plot.curves.forEach(c => {
+        if (!c.el) list.append(buildCard(c));
         const q = sel => c.el.querySelector(sel);
         const name = curveName(c);
 
-        c.el.classList.toggle("sel", c === P.active);
+        c.el.classList.toggle("sel", c === plot.active);
         c.el.classList.toggle("off", !c.visible);
         c.el.classList.toggle("open", c.open);
         q(".curve-expand").setAttribute("aria-expanded", c.open);
         q(".curve-expand").setAttribute("aria-label", `${c.open ? "Collapse" : "Expand"} ${name}`);
-        q(".curve-select").setAttribute("aria-pressed", c === P.active);
+        q(".curve-select").setAttribute("aria-pressed", c === plot.active);
         q(".curve-select").title = c.auto;
         q(".curve-body").hidden = !c.open;
         q(".curve-swatch").innerHTML = curveSwatch(c);
@@ -293,7 +286,7 @@ function renderCurveList(group) {
         eye.title = c.visible ? "Hide" : "Show";
 
         const remove = q('[data-act="remove"]');
-        remove.disabled = P.curves.length < 2;
+        remove.disabled = plot.curves.length < 2;
         remove.setAttribute("aria-label", `Remove ${name}`);
         remove.title = "Remove";
 
@@ -301,19 +294,17 @@ function renderCurveList(group) {
     });
 }
 
-// Plot options panel and the add button of a view
-function initPlotOptions(group) {
-    const root = document.querySelector(`[data-pc="${group}"]`);
-    const P = plots[group];
-    root.querySelector(".pc-add").onclick = () => addCurve(group);
+// Plot options panel and the add button
+function initPlotOptions() {
+    document.querySelector(".pc-add").onclick = addCurve;
 
     const opts = document.getElementById("optsTpl").content.firstElementChild.cloneNode(true);
-    root.querySelector(".pc-list").after(opts);
+    document.querySelector(".pc-list").after(opts);
     opts.querySelectorAll("[data-o]").forEach(el => {
-        if (el.type === "checkbox") el.checked = P.opts[el.dataset.o];
-        else el.value = P.opts[el.dataset.o];
+        if (el.type === "checkbox") el.checked = plot.opts[el.dataset.o];
+        else el.value = plot.opts[el.dataset.o];
         el.oninput = () => {
-            P.opts[el.dataset.o] = el.type === "checkbox" ? el.checked : el.value;
+            plot.opts[el.dataset.o] = el.type === "checkbox" ? el.checked : el.value;
             renderAllCharts();
         };
     });
@@ -321,15 +312,15 @@ function initPlotOptions(group) {
 
 // Side cards describe the active curve: anthropometric data for a measured curve,
 // model parameters and image for a model curve
-function updateSideCards(group) {
-    const c = plots[group].active;
+function updateSideCards() {
+    const c = plot.active;
     if (!c?.shown) return;
     const { type, dir, subject, Fp, Fg } = c.shown;
     document.querySelectorAll("[data-for]").forEach(el => el.hidden = el.dataset.for !== type);
+    const pill = type === "measured" ? subjectLabel(subject) : `Model · Fp ${Fp} N · Fg ${Fg} N`;
+    document.querySelectorAll(".selected-subject").forEach(el => el.textContent = `${pill} · ${curveName(c)}`);
 
     if (type === "measured") {
-        document.getElementById("selectedSubject").textContent =
-            `${subjectLabel(subject)} · ${curveName(c)}`;
         writeMeta(extractSubjectMeta(c.rows, subject));
     } else {
         // Rotational models: moments of inertia J in kg·m², torsional c and k;
@@ -347,7 +338,7 @@ function updateSideCards(group) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
+    buildParamCards();
     initShell();
     applyChartTheme();
     window.addEventListener("load", applyChartTheme);
@@ -359,16 +350,4 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
     }
     setStatus("");
-    document.getElementById("chartMI").classList.add("active");
-    document.getElementById("btnMI").classList.add("active");
-
-    function watchDPR() {
-        const mql = window.matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`);
-        mql.addEventListener('change', () => {
-            Chart.defaults.devicePixelRatio = window.devicePixelRatio;
-            Object.values(charts).forEach(c => c?.resize());
-            watchDPR(); // re-register for the next change
-        }, { once: true });
-    }
-    watchDPR();
 });

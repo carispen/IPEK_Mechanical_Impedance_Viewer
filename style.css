@@ -371,18 +371,6 @@ body:has(.sidebar[hidden]) .topbar ~ main,
 
 /* ---------- form controls ---------- */
 
-.control-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.control-group label,
-.slider-header label {
-    font-size: 14px;
-    font-weight: 600;
-}
-
 select {
     width: 100%;
     height: 38px;
@@ -654,8 +642,7 @@ main:focus {
     font-weight: 600;
 }
 
-.chart-container,
-.chart-container-mod {
+.chart-container {
     position: relative;
     width: 100%;
     height: var(--chart-h);
@@ -665,30 +652,26 @@ main:focus {
     background: var(--chart-bg);
 }
 
-.chart-container canvas,
-.chart-container-mod canvas {
+.chart-container canvas {
     width: 100% !important;
     height: 100% !important;
 }
 
 /* stacked canvases are absolutely positioned, so % refers to the padding box */
-.chart-container .top-chart,
-.chart-container-mod .mod-chart {
+.chart-container .top-chart {
     width: calc(100% - 16px) !important;
     height: calc(100% - 8px) !important;
 }
 
 /* MI / VPA share one container; only the active one is visible */
-.top-chart,
-.mod-chart {
+.top-chart {
     position: absolute;
     inset: 6px 8px 2px;
     opacity: 0;
     pointer-events: none;
 }
 
-.top-chart.active,
-.mod-chart.active {
+.top-chart.active {
     opacity: 1;
     pointer-events: auto;
 }

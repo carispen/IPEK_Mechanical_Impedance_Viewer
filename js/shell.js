@@ -41,7 +41,7 @@ function applyChartTheme() {
     Chart.defaults.font.family = cssVar("--sans");
 
     // Chart options are rebuilt on render, so a redraw picks up the new theme colors
-    if (charts.chart1) renderAllCharts();
+    if (charts.chartMI) renderAllCharts();
 }
 
 function setTheme(theme) {

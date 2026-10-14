@@ -2,12 +2,8 @@
 // Application state and data sources
 // ============================================================================
 
-const charts = {
-    chart1: null,
-    chart2: null,
-    chart3: null,
-    chart4: null
-};
+// Chart.js instances keyed by canvas id
+const charts = {};
 // Data folder per excitation direction: data/<code>/index.json lists the subjects,
 // data/<code>/S<nn>.json holds the measurements of one subject (tools/exportResultsJson.m)
 const DIR_CODES = {
@@ -32,18 +28,16 @@ const DIR_LABELS = {
     rotatorischX: "rotational xₕ"
 };
 
-// Curves per view. Every curve carries its own conditions (incl. type: measured or model),
+// Curves of the data view. Every curve carries its own conditions (incl. type: measured or model),
 // style and computed data; "active" is the curve last worked on, which the side cards describe.
-const plots = {
-    measured: { curves: [], active: null, next: 0, opts: { legend: "top", xScale: "logarithmic", grid: true } }
-};
+const plot = { curves: [], active: null, next: 0, opts: { legend: "top", xScale: "logarithmic", grid: true } };
 
-// Chart definitions: canvas, owning view and axis labels
+// Chart definitions: canvas, data field of the rows (abs = magnitude of the measured values) and axis labels
 const CHART_DEFS = [
-    { key: "chart1", id: "chartMI",        group: "measured", min: 0,  axis: "|Zₕ| in Ns/m",  prefix: "Zₕ" },
-    { key: "chart2", id: "chartPhase",     group: "measured", min: -1, axis: "∠Zₕ in rad", prefix: "∠Zₕ" },
-    { key: "chart3", id: "chartVPA",       group: "measured", min: 0,  axis: "VPA in W",          prefix: "VPA" },
-    { key: "chart4", id: "chartAjw",       group: "measured", min: 0,  axis: "|a| in m/s²",       prefix: "|a|" }
+    { id: "chartMI",    field: "MI",    abs: true,  min: 0,  axis: "|Zₕ| in Ns/m", prefix: "Zₕ" },
+    { id: "chartPhase", field: "Phase", abs: false, min: -1, axis: "∠Zₕ in rad",   prefix: "∠Zₕ" },
+    { id: "chartVPA",   field: "VPA",   abs: true,  min: 0,  axis: "VPA in W",     prefix: "VPA" },
+    { id: "chartAjw",   field: "ajw",   abs: false, min: 0,  axis: "|a| in m/s²",  prefix: "|a|" }
 ];
 
 const MARKERS = ["circle", "triangle", "rect", "rectRot", "crossRot", "star"];

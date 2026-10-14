@@ -72,7 +72,7 @@
         <p class="panel-title" id="panelTitle">Plot setup</p>
 
         <!-- Curves; each one is measured or model data with its own conditions -->
-        <section class="controls" data-pc="measured" aria-labelledby="ctlMeasTitle">
+        <section class="controls" aria-labelledby="ctlMeasTitle">
             <div class="pc-head">
                 <h2 class="side-title" id="ctlMeasTitle"><span class="card-number">1</span>Curves</h2>
                 <button type="button" class="pc-add">+ Add curve</button>
@@ -197,11 +197,11 @@
                             <h2 class="card-title"><span class="card-number">2</span>Results</h2>
                             <div class="tab-header" role="tablist" aria-label="Upper chart">
                                 <button id="btnMI" type="button" role="tab" aria-selected="true" aria-controls="chartMI"
-                                    class="active" onclick="switchChart('top','chartMI',this)">
+                                    class="active" onclick="switchChart('chartMI',this)">
                                     Magnitude of MI
                                 </button>
                                 <button type="button" role="tab" aria-selected="false" aria-controls="chartVPA"
-                                    onclick="switchChart('top','chartVPA',this)">
+                                    onclick="switchChart('chartVPA',this)">
                                     Vibration Power Absorption
                                 </button>
                             </div>
@@ -243,61 +243,8 @@
                     <!-- Anthropometric data -->
                     <article class="card" data-for="measured">
                         <h2 class="card-title"><span class="card-number">4</span>Anthropometric data</h2>
-                        <p class="selected-subject" id="selectedSubject"></p>
-                        <dl class="param-list">
-                            <div class="param-row">
-                                <dt>Sex</dt>
-                                <dd id="gender" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Age [years]</dt>
-                                <dd id="age" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Hand weight [g]</dt>
-                                <dd id="handWeight" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Body weight [kg]</dt>
-                                <dd id="bodyWeight" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Body height [mm]</dt>
-                                <dd id="bodyHeight" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Front reach [mm]</dt>
-                                <dd id="FrontReach" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Elbow to wrist length [mm]</dt>
-                                <dd id="ElbowToWristLength" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Thumb length [mm]</dt>
-                                <dd id="thumbLength" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Hand length [mm]</dt>
-                                <dd id="handLength" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Palm length [mm]</dt>
-                                <dd id="palmLength" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Palm width [mm]</dt>
-                                <dd id="palmWidth" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Forearm circumference [mm]</dt>
-                                <dd id="forearmCircumference" class="param-value"></dd>
-                            </div>
-                            <div class="param-row">
-                                <dt>Arm circumference [mm]</dt>
-                                <dd id="armCircumference" class="param-value"></dd>
-                            </div>
-                        </dl>
+                        <p class="selected-subject"></p>
+                        <dl class="param-list" id="anthroList"></dl>
 
                     </article>
 
@@ -313,6 +260,7 @@
                     <!-- Model parameters -->
                     <article class="card" data-for="model" hidden>
                         <h2 class="card-title"><span class="card-number">4</span>Model parameters</h2>
+                        <p class="selected-subject"></p>
                         <table class="param-table">
                             <caption class="visually-hidden">Masses, damping and stiffness coefficients of the four-mass
                                 model</caption>
@@ -324,38 +272,14 @@
                                     <th scope="col" id="hdrK">k <small>[N/m]</small></th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <th scope="row">1</th>
-                                    <td id="m1" class="param-value"></td>
-                                    <td id="c1" class="param-value"></td>
-                                    <td id="k1" class="param-value"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">2</th>
-                                    <td id="m2" class="param-value"></td>
-                                    <td id="c2" class="param-value"></td>
-                                    <td id="k2" class="param-value"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">3</th>
-                                    <td id="m3" class="param-value"></td>
-                                    <td id="c3" class="param-value"></td>
-                                    <td id="k3" class="param-value"></td>
-                                </tr>
-                                <tr>
-                                    <th scope="row">4</th>
-                                    <td id="m4" class="param-value"></td>
-                                    <td id="c4" class="param-value"></td>
-                                    <td id="k4" class="param-value"></td>
-                                </tr>
-                            </tbody>
+                            <tbody id="modelParams"></tbody>
                         </table>
                     </article>
 
                     <!-- Four-mass oscillator representation -->
                     <article class="card" data-for="model" hidden>
                         <h2 class="card-title"><span class="card-number">4</span>Four-mass oscillator model</h2>
+                        <p class="selected-subject"></p>
                         <div class="model-figures">
                             <figure class="plate">
                                 <img id="modelImage" src="four_mass_model_translational.png"

@@ -2,28 +2,17 @@
 // Chart handling and visualization
 // ============================================================================
 
-// Show the selected chart and hide the other charts in the same chart group
-function switchChart(group, canvasId, btn = null) {
+// Show the selected upper chart and mark its tab button
+function switchChart(canvasId, btn) {
+    btn.parentElement
+        .querySelectorAll("button")
+        .forEach(b => {
+            b.classList.toggle("active", b === btn);
+            b.setAttribute("aria-selected", b === btn);
+        });
 
-    if (btn) {
-        btn.parentElement
-            .querySelectorAll("button")
-            .forEach(b => {
-                b.classList.remove("active");
-                b.setAttribute("aria-selected", "false");
-            });
-
-        btn.classList.add("active");
-        btn.setAttribute("aria-selected", "true");
-    }
-
-    const selector = ".top-chart";
-
-    document.querySelectorAll(selector)
-        .forEach(c => c.classList.remove("active"));
-
-    document.getElementById(canvasId)
-        .classList.add("active");
+    document.querySelectorAll(".top-chart")
+        .forEach(c => c.classList.toggle("active", c.id === canvasId));
 
     // VPA has no phase
     document.querySelectorAll(".phase-block")
@@ -33,60 +22,51 @@ function switchChart(group, canvasId, btn = null) {
         .forEach(el => el.hidden = canvasId !== "chartVPA");
 }
 
-// Model file per excitation direction (one MATLAB globalModel each): the force-dependent
-// mass, damping and stiffness coefficient matrices m, d and k
-const MODEL_FILES = {
-    translatorischX: "data/model_TX.json",
-    translatorischY: "data/model_TY.json",
-    translatorischZ: "data/model_TZ.json",
-    rotatorischX: "data/model_RX.json",
-    rotatorischY: "data/model_RY.json",
-    rotatorischZ: "data/model_RZ.json"
-};
-
-// Build the regression vector used by the force-dependent model:
-// [1, Fg, Fp, Fg * Fp]
-function buildX( Fg, Fp){
-
-    return[
-        1,
-        Fg,
-        Fp,
-        Fg * Fp
-    ];
-}
-
-// Load the model coefficient matrices { m, d, k } for an excitation direction
-function loadBetas(dir) {
-    return loadJson(MODEL_FILES[dir]);
-}
-
 function num(v, fallback = 0) {
     const n = Number(v);
     return Number.isFinite(n) ? n : fallback;
 }
 
-// Anthropometric fields shown in the side card (ids in index.html, keys in data/subjects.json)
-const ANTHRO_FIELDS = ["age", "handWeight", "bodyWeight", "bodyHeight", "FrontReach", "ElbowToWristLength",
-    "thumbLength", "handLength", "palmLength", "palmWidth", "forearmCircumference", "armCircumference"];
+// Anthropometric fields shown in the side card (keys in data/subjects.json) with their labels
+const ANTHRO_FIELDS = {
+    age: "Age [years]",
+    handWeight: "Hand weight [g]",
+    bodyWeight: "Body weight [kg]",
+    bodyHeight: "Body height [mm]",
+    FrontReach: "Front reach [mm]",
+    ElbowToWristLength: "Elbow to wrist length [mm]",
+    thumbLength: "Thumb length [mm]",
+    handLength: "Hand length [mm]",
+    palmLength: "Palm length [mm]",
+    palmWidth: "Palm width [mm]",
+    forearmCircumference: "Forearm circumference [mm]",
+    armCircumference: "Arm circumference [mm]"
+};
 
-// Extract anthropometric information (from data/subjects.json) and the available force limits
-// (from the measurement rows) for the selected subject, or for all subjects of the rows.
+// Rows of the anthropometric list and of the model parameter table, filled by writeMeta and writeVector
+function buildParamCards() {
+    document.getElementById("anthroList").innerHTML = Object.entries({ gender: "Sex", ...ANTHRO_FIELDS })
+        .map(([id, label]) => `<div class="param-row"><dt>${label}</dt><dd id="${id}" class="param-value"></dd></div>`)
+        .join("");
+    document.getElementById("modelParams").innerHTML = [1, 2, 3, 4]
+        .map(i => `<tr><th scope="row">${i}</th>` +
+            ["m", "c", "k"].map(p => `<td id="${p}${i}" class="param-value"></td>`).join("") + "</tr>")
+        .join("");
+}
+
+// Extract anthropometric information (from data/subjects.json) for the selected subject,
+// or for all subjects of the rows.
 // "All Subjects" is the mean over the subjects measured in this direction, each weighted equally.
 function extractSubjectMeta(resultsMatrix, selectedSubject) {
     if (!resultsMatrix || resultsMatrix.length === 0) return null;
 
     const people = subjectsOf(resultsMatrix).map(s => subjectData[s]).filter(Boolean);
-    const genderText = selectedSubject === "ALL" ? "mixed"
-        : { 1: "male", 2: "female" }[people[0]?.gender] ?? "unknown";
-
     const meta = {
-        gender: genderText,
-        maxFg: Math.max(...resultsMatrix.map(x => num(x.MaxGripForce)).filter(Number.isFinite)),
-        maxFp: Math.max(...resultsMatrix.map(x => num(x.MaxPushForce)).filter(Number.isFinite))
+        gender: selectedSubject === "ALL" ? "mixed"
+            : { 1: "male", 2: "female" }[people[0]?.gender] ?? "unknown"
     };
     // A subject missing from subjects.json shows "–" instead of a made-up value
-    ANTHRO_FIELDS.forEach(f => meta[f] = people.length ? math.mean(people.map(p => num(p[f]))) : "–");
+    Object.keys(ANTHRO_FIELDS).forEach(f => meta[f] = people.length ? math.mean(people.map(p => num(p[f]))) : "–");
     return meta;
 }
 
@@ -106,19 +86,7 @@ function getUnionRange(matrix, field) {
         matrix
             .filter(r => r?.[field] != null)
             .map(r => getScalar(r[field]))
-    )].sort((a, b) => a - b);
-}
-
-// Determine the available push-force and grip-force values for a data set
-function computeForceRangesForProband(resultsMatrix, isModChart = false) { //
-    if (!resultsMatrix || resultsMatrix.length === 0) {
-        return { rangeFp: [], rangeFg: [] };
-    }
-
-    const rangeFp = getUnionRange(resultsMatrix, "TargetPushForce").filter(Number.isFinite);
-    const rangeFg = getUnionRange(resultsMatrix, "TargetGripForce").filter(Number.isFinite);
-
-    return { rangeFp, rangeFg };
+    )].filter(Number.isFinite).sort((a, b) => a - b);
 }
 
 // Six equally spaced tick labels for a force slider
@@ -128,37 +96,18 @@ function sliderTicks(min, max, n = 6) {
 
 // Update the model illustrations to match the selected excitation type
 function updateModelImage(excitation) {
-    const img = document.getElementById("modelImage");
-    const imgSym = document.getElementById("modelImageSym");
-
-    if (excitation.startsWith("translatorisch")) {
-        // Use the translational model illustrations
-        img.src = "four_mass_model_translational.png";
-        imgSym.src = "symbols_translational.png";
-    } else if (excitation.startsWith("rotatorisch")) {
-        // Use the rotational model illustrations
-        img.src = "four_mass_model_rotational.png";
-        imgSym.src = "symbols_rotational.png";
-    }
-
+    const kind = excitation.startsWith("rotatorisch") ? "rotational" : "translational";
+    document.getElementById("modelImage").src = `four_mass_model_${kind}.png`;
+    document.getElementById("modelImageSym").src = `symbols_${kind}.png`;
 }
 
-// Initialize the application: one curve per view, computed from the default
-// conditions, then attach the resize observers.
+// Initialize the application: one curve, computed from the default conditions.
 async function initializeApp() {
-    Object.keys(plots).forEach(group => {
-        initPlotOptions(group);
-        const c = newCurve(group);
-        c.open = true;
-        plots[group].curves.push(c);
-        plots[group].active = c;
-        renderCurveList(group);
-    });
-    await Promise.all(Object.keys(plots).map(g => computeCurve(g, plots[g].curves[0], true)));
-    requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-            renderAllCharts();
-            ["chartMI","chartPhase","chartVPA","chartAjw"].forEach(observeChartContainer);
-        });
-    });
+    initPlotOptions();
+    const c = newCurve();
+    c.open = true;
+    plot.curves.push(c);
+    plot.active = c;
+    renderCurveList();
+    await computeCurve(c, true);
 }
