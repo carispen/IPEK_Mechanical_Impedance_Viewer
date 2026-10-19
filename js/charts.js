@@ -60,7 +60,10 @@ function selectMat(resultsMatrix, initFp, initFg, def, prc = [0.05, 0.95]) {
     const freq = resultsMatrix[0].freq;
 
     // Interpolation is performed independently for each subject.
-    const sources = Object.values(Object.groupBy(resultsMatrix, r => r.SubjectNumber))
+    // (no Object.groupBy: it needs Safari/iOS 17.4+)
+    const bySubject = {};
+    for (const r of resultsMatrix) (bySubject[r.SubjectNumber] ??= []).push(r);
+    const sources = Object.values(bySubject)
         .map(rows => subjectSource(rows, Number(initFp), Number(initFg)))
         .filter(Boolean);
 
