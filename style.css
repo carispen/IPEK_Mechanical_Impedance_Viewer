@@ -315,15 +315,6 @@ body:has(.sidebar[hidden]) .topbar ~ main,
     background: var(--plate);
 }
 
-:root[data-theme="dark"] .brand-logos {
-    background: none;
-    padding-left: 0;
-}
-
-:root[data-theme="dark"] .brand-logos img {
-    filter: invert(1) hue-rotate(180deg) brightness(1.1);
-}
-
 .brand-logos img {
     height: 24px;
     width: auto;
